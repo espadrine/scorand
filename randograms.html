@@ -1,0 +1,341 @@
+<!doctype html><meta charset=utf-8><title></title>
+<h1>Randograms</h1>
+<select id=pick-prng>
+  <option value=xorshift128plus>XorShift128+</option>
+  <option value=drand48>drand48</option>
+  <option value=arc4random>arc4random</option>
+  <option value=lehmer128>Lehmer128</option>
+  <option value=combit>Combit</option>
+</select>
+<section>
+  <h2 id=prng-name>PRNG name</h2>
+  <canvas id=prng-bit class=bitRandogram></canvas>
+  <p id=prng-desc>Description</p>
+  <pre id=prng-code></pre>
+  <canvas id=prng-coord class=coordRandogram></canvas>
+</section>
+
+<div id=prngs>
+  <section id=prng-xorshift128plus>
+    <h2>XorShift128+</h2>
+    <p>As used by Firefox, Chrome, Safari.</p>
+    <pre>
+    let s1 = this.state[0], s0 = this.state[1];
+    this.state[0] = s0;
+    s1 ^= (s1 << 23n) & this.mask64;
+    s1 ^= s1 >> 17n;
+    s1 ^= s0;
+    s1 ^= s0 >> 26n;
+    this.state[1] = s1;
+    return (s0 + s1) & this.mask64;
+    </pre>
+  </section>
+  <br clear=left>
+  <section id=prng-drand48>
+    <h2>drand48</h2>
+    <p>As used by Java.</p>
+    <pre>
+    this.state = (this.state * 0x5DEECE66Dn + 0xBn) & this.mask;
+    return Number(this.state >> 16n);
+    </pre>
+  </section>
+  <br clear=left>
+  <section id=prng-arc4random>
+    <h2>arc4random</h2>
+    <p>Also known as the RC4 cipher. Formerly used by macOS.</p>
+    <pre>
+    i = (i + 1) & 255;
+    j = (j + state[i]) & 255;
+    [state[i], state[j]] = [state[j], state[i]];
+    return state[(state[i] + state[j]) & 255];
+    </pre>
+  </section>
+  <br clear=left>
+  <section id=prng-lehmer128>
+    <h2>Lehmer-128</h2>
+    <p>Simple MCG on a 128-bit number.</p>
+    <pre>
+    this.state = (this.state * 0xda942042e4dd58b5n) & ((1n << 128n) - 1n);
+    return this.state >> 64n;
+    </pre>
+  </section>
+  <br clear=left>
+  <section id=prng-combit>
+    <h2>Combit</h2>
+    <p>Segregated rotation and addition.</p>
+    <pre>
+    const state = this.state, counter = (this.counter++) >>> 0;
+    const rot = this.counter & 31, s0 = this.state[0], size = 7, max = size - 1;
+    for (let i = 0; i < max; i++) {
+      this.state[i] = ror(this.state[i], rot) + this.state[i+1] >>> 0;
+    }
+    this.state[max] = ror(this.state[max], rot) + s0 + this.counter;
+    return this.state[0];
+    </pre>
+  </section>
+</div>
+<style>
+  body{margin:0}
+  canvas[class=bitRandogram]{margin:0 10px;width:64px;height:512px;float:left}
+  canvas[class=coordRandogram]{margin:10px;width:256px;height:256px;}
+  #prngs{display:none;}
+</style>
+<script type=webworker id=prng>
+  class PRNG {
+    bytes(buf) {
+      if (!buf instanceof Uint8Array) { return; }
+      const n = buf.length >>> 0;
+      const nbytes = n & ~7;  // Truncate to 32-bit.
+      let i = 0;
+      while (i < nbytes) {
+        let r = this.random32();
+        buf[i++] = (r & (0xff << 24)) >>> 24;
+        buf[i++] = (r & (0xff << 16)) >>> 16;
+        buf[i++] = (r & (0xff <<  8)) >>> 8;
+        buf[i++] = (r & (0xff <<  0)) >>> 0;
+      }
+      let remainder = n & 3;
+      if (remainder > 0) {
+        let r = this.random32();
+        for (; remainder >= 0; remainder--) {
+          buf[i++] = r >>> (8 * remainder);
+          r <<= 8;
+        }
+      }
+    }
+  }
+
+  class PRNG64 extends PRNG {
+    constructor() {
+      super();
+      this.rand32 = [0, 0];
+      this.idx = 2;
+      this.mask64 = ((1n << 64n) - 1n);
+      this.mask32 = ((1n << 32n) - 1n);
+    }
+    random32() {
+      if (this.idx < 2) {
+        return this.rand32[this.idx++];
+      }
+      const rand64 = this.random64();
+      this.rand32[0] = Number(rand64 >> 32n);
+      this.rand32[1] = Number(rand64 & this.mask32);
+      this.idx = 1;
+      return this.rand32[0];
+    }
+  }
+
+  const prngs = {
+    xorshift128plus: class XorShift128Plus extends PRNG64 {
+      constructor(seed) {
+        super();
+        this.state = [BigInt(seed), BigInt(seed|1)];
+      }
+      random64() {
+        let s1 = this.state[0], s0 = this.state[1];
+        this.state[0] = s0;
+        s1 ^= (s1 << 23n) & this.mask64;
+        s1 ^= s1 >> 17n;
+        s1 ^= s0;
+        s1 ^= s0 >> 26n;
+        this.state[1] = s1;
+        return (s0 + s1) & this.mask64;
+      }
+    },
+    drand48: class Drand48 extends PRNG {
+      constructor(seed) {
+        super();
+        this.mask = (1n << 48n) - 1n;
+        this.state = (BigInt(seed) ^ 0x5DEECE66Dn) & this.mask;
+      }
+      random32() {
+        this.state = (this.state * 0x5DEECE66Dn + 0xBn) & this.mask;
+        return Number(this.state >> 16n);
+      }
+    },
+    arc4random: class Arc4Random extends PRNG {
+      constructor(seed) {
+        super();
+        this.state = new Uint8Array(256);
+        this.index = new Uint8Array(2);
+        const s = this.state, idx = this.index;
+        for (let i = 0; i < 256; i++) { s[i] = i; }
+        for (let i = 0; i < 256; i++) {
+          idx[0] = idx[0] + s[i] + Number(seed & 255);
+          [s[i], s[idx[0]]] = [s[idx[0]], s[i]];
+        }
+        idx[0] = 0;
+      }
+      random8() {
+        const s = this.state, idx = this.index;
+        idx[0]++;
+        idx[1] += s[idx[0]];
+        [s[idx[0]], s[idx[1]]] = [s[idx[1]], s[idx[0]]];
+        return s[(s[idx[0]] + s[idx[1]]) & 255];
+      }
+      random32() {
+        return (this.random8() << 24) |
+               (this.random8() << 16) |
+               (this.random8() <<  8) |
+               (this.random8() <<  0);
+      }
+    },
+    lehmer128: class Lehmer128 extends PRNG64 {
+      constructor(seed) {
+        super();
+        this.state = BigInt(seed | 1);
+      }
+      random64() {
+        this.state = (this.state * 0xda942042e4dd58b5n) & ((1n << 128n) - 1n);
+        return this.state >> 64n;
+      }
+    },
+    combit: class Combit extends PRNG {
+      constructor(seed) {
+        super();
+        this.state = Uint32Array.from([
+          //0x9E3779B9 ^
+          seed, 0x7F4A7C15, 0xF39CC060,
+          0x5CEDC834, 0x1082276B, 0xF3A27251, 0xF86C6A11,
+        ]);
+        this.counter = 0;
+      }
+      random32() {
+        const state = this.state, counter = (this.counter++) >>> 0;
+        const rot = this.counter & 31, s0 = this.state[0], size = 7, max = size - 1;
+        for (let i = 0; i < max; i++) {
+          this.state[i] = ror(this.state[i], rot) + this.state[i+1] >>> 0;
+        }
+        this.state[max] = ror(this.state[max], rot) + s0 + this.counter;
+        return this.state[0];
+      }
+    }
+  };
+
+  function ror(a, n) {
+    return (a >>> n) | (a << (32 - n)) >>> 0;
+  }
+
+  onmessage = function(event) {
+    const ab = new ArrayBuffer(event.data.nbytes);
+    const buf = new Uint8Array(ab);
+    (new prngs[event.data.prng](0)).bytes(buf);
+    postMessage({bytes: ab, prng: event.data.prng}, [ab]);
+  };
+</script>
+<script>
+  function main() {
+    const sel = document.getElementById('pick-prng');
+    sel.addEventListener('change', prngChange);
+    sel.dispatchEvent(new Event('change'));
+  }
+
+  function prngChange(event) {
+    const prng = event.target.value;
+    document.getElementById('prng-name').innerHTML = document.querySelector('#prng-'+prng+'>h2').innerHTML;
+    document.getElementById('prng-desc').innerHTML = document.querySelector('#prng-'+prng+'>p').innerHTML;
+    document.getElementById('prng-code').innerHTML = document.querySelector('#prng-'+prng+'>pre').innerHTML;
+    [{
+      name: 'bit',
+      canvas: document.getElementById('prng-bit'),
+    }, {
+      name: 'coord',
+      canvas: document.getElementById('prng-coord'),
+    }].forEach(randogram => {
+        const worker = new Worker('data:application/javascript;base64,' +
+          btoa(document.getElementById('prng').text));
+        const t0 = performance.now();
+        worker.addEventListener('message', event => {
+          const t1 = performance.now();
+          console.log(event.data.prng, 'performance:', t1 - t0, 'ms');
+          const  width = document.documentElement.clientWidth;
+          const height = document.documentElement.clientHeight;
+          const c = new Canvas(randogram.canvas);
+          c[randogram.name + 'Randogram'](new Uint8Array(event.data.bytes));
+          //console.log('Render Performance:', performance.now() - t1, 'ms');
+        });
+        let nbytes = randogram.canvas.clientWidth * randogram.canvas.clientHeight;
+        if (randogram.name === 'coord') { nbytes = 256 * 256 * 16; }
+        worker.postMessage({
+          nbytes: nbytes,
+          prng: prng,
+        });
+    });
+  }
+
+  class Canvas {
+    constructor(dom) {
+      const canvas = this.element = dom;
+      const width = this.width = canvas.width = canvas.clientWidth;
+      const height = this.height = canvas.height = canvas.clientHeight;
+      canvas.style.width = width + 'px';
+      canvas.style.height = height + 'px';
+      this.ctx = canvas.getContext('2d');
+      this.img = this.ctx.createImageData(this.width, this.height);
+    }
+
+    bitRandogram(bytes) {
+      const width = this.width, height = this.height, size = width * height;
+      if (bytes.length < size / 8) {
+        console.error('Too few random bytes for bit randogram');
+        height = Math.floor(bytes.length * 8 / width);
+        size = width * height;
+      }
+      const buf = this.img.data;
+      let randwidth = width;
+      let bi = 0, byte = bytes[0], bitidx = 7;
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < randwidth; x++) {
+          const bit = (byte & (1 << bitidx)) >>> bitidx;
+          bitidx--;
+          if (bitidx === 0) {
+            bi++;
+            byte = bytes[bi];
+            bitidx = 7;
+          }
+          const color = (bit === 0)? 0: 255;
+          buf[4*(y*width+x)+0] = color;
+          buf[4*(y*width+x)+1] = color;
+          buf[4*(y*width+x)+2] = color;
+          buf[4*(y*width+x)+3] = 255;
+        }
+        //if ((y & 7) === 0) { randwidth--; }
+      }
+      this.ctx.putImageData(this.img, 0, 0);
+    }
+    coordRandogram(bytes) {
+      const width = this.width, height = this.height;
+      if (width < 256 || height < 256) {
+        console.error('Canvas is too small for coord randogram; need 256x256');
+      }
+      const buf = this.img.data;
+      for (let i = 0; i < buf.length; i++) { buf[i] = 255; }
+      for (let i = 0; i < bytes.length; i += 2) {
+        const x = bytes[i], y = bytes[i + 1];
+        const pi = y*width + x, bi = 4*pi;
+        let b = buf[bi];
+        if (b >= 16) { b -= 16; }
+        buf[bi] = buf[bi+1] = buf[bi+2] = b;
+        buf[bi+3] = 255;
+      }
+      this.ctx.putImageData(this.img, 0, 0);
+    }
+    colorRandogram(bytes) {
+      let width = this.width, height = this.height, size = width * height;
+      if (bytes.length < size * 3) {
+        console.error('Too few random bytes for color randogram');
+        size = Math.floor(bytes.length / 3);
+      }
+      const buf = this.img.data;
+      for (let pi = 0, bi = 0; pi < buf.length; pi += 4, bi += 3) {
+        buf[pi + 0] = bytes[bi + 0];
+        buf[pi + 1] = bytes[bi + 1];
+        buf[pi + 2] = bytes[bi + 2];
+        buf[pi + 3] = 255;
+      }
+      this.ctx.putImageData(this.img, 0, 0);
+    }
+  }
+  
+  addEventListener('DOMContentLoaded', main);
+</script>
