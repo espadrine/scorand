@@ -12,7 +12,10 @@
   <canvas id=prng-bit class=bitRandogram></canvas>
   <p id=prng-desc>Description</p>
   <pre id=prng-code></pre>
-  <canvas id=prng-coord class=coordRandogram></canvas>
+  <figure>
+    <canvas id=prng-coord class=coordRandogram></canvas>
+    <figcaption>Seed differential coordinate analysis</figcaption>
+  </figure>
 </section>
 
 <div id=prngs>
@@ -219,7 +222,7 @@
   onmessage = function(event) {
     const ab = new ArrayBuffer(event.data.nbytes);
     const buf = new Uint8Array(ab);
-    (new prngs[event.data.prng](0)).bytes(buf);
+    (new prngs[event.data.prng](event.data.seed || 0)).bytes(buf);
     postMessage({bytes: ab, prng: event.data.prng}, [ab]);
   };
 </script>
@@ -238,28 +241,48 @@
     [{
       name: 'bit',
       canvas: document.getElementById('prng-bit'),
-    }, {
+    }].forEach(randogram => {
+      getrandom(prng, 0).then(res => {
+        const c = new Canvas(randogram.canvas);
+        c[randogram.name + 'Randogram'](new Uint8Array(res.bytes));
+      }).catch(e => console.error(e));
+    });
+    // Differential analysis.
+    [{
       name: 'coord',
       canvas: document.getElementById('prng-coord'),
     }].forEach(randogram => {
-        const worker = new Worker('data:application/javascript;base64,' +
-          btoa(document.getElementById('prng').text));
-        const t0 = performance.now();
-        worker.addEventListener('message', event => {
-          const t1 = performance.now();
-          console.log(event.data.prng, 'performance:', t1 - t0, 'ms');
-          const  width = document.documentElement.clientWidth;
-          const height = document.documentElement.clientHeight;
+      getrandom(prng, 0).then(res => {
+        const res0 = res.bytes;
+        return getrandom(prng, 2).then(res => {
+          const res1 = res.bytes;
           const c = new Canvas(randogram.canvas);
-          c[randogram.name + 'Randogram'](new Uint8Array(event.data.bytes));
-          //console.log('Render Performance:', performance.now() - t1, 'ms');
+          c[randogram.name + 'Randogram'](new Uint8Array(res0), new Uint8Array(res1));
         });
-        let nbytes = randogram.canvas.clientWidth * randogram.canvas.clientHeight;
-        if (randogram.name === 'coord') { nbytes = 256 * 256 * 16; }
-        worker.postMessage({
-          nbytes: nbytes,
-          prng: prng,
-        });
+      }).catch(e => console.error(e));
+    });
+  }
+
+  const cachedRand = new Map();
+  // Resolves to {bytes: Uint8Array, prng: String}.
+  function getrandom(alg, seed) {
+    return new Promise((resolve, reject) => {
+      const key = alg + '-' + seed;
+      if (cachedRand.has(key)) { return resolve(cachedRand.get(key)); }
+      const worker = new Worker('data:application/javascript;base64,' +
+        btoa(document.getElementById('prng').text));
+      const t0 = performance.now();
+      worker.addEventListener('message', event => {
+        const t1 = performance.now();
+        resolve(event.data);
+        cachedRand.set(key, event.data);
+        console.log(event.data.prng, 'performance:', t1 - t0, 'ms');
+      });
+      worker.postMessage({
+        nbytes: document.documentElement.clientWidth * document.documentElement.clientHeight,
+        prng: alg,
+        seed: seed,
+      });
     });
   }
 
@@ -303,7 +326,12 @@
       }
       this.ctx.putImageData(this.img, 0, 0);
     }
-    coordRandogram(bytes) {
+    coordRandogram(bytes0, bytes1) {
+      const bytes = new Uint8Array(bytes0.length);
+      for (let i = 0; i < bytes.length; i++) {
+        bytes[2*i] = bytes0[i];
+        bytes[2*i+1] = bytes1[i];
+      }
       const width = this.width, height = this.height;
       if (width < 256 || height < 256) {
         console.error('Canvas is too small for coord randogram; need 256x256');
