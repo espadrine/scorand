@@ -27,3 +27,20 @@ export class ConstantBit extends Bit {
   set(bit) { this.value = (+bit)? 1: 0; return this; }
   toString() { return String(this.value); }
 }
+
+export class VarBit extends Bit {
+  constructor() {
+    super();
+    this.id = VarBit.varId++;
+    this.name = VarBit.nameFromId(this.id);
+  }
+  toString() { return this.name; }
+}
+VarBit.varId = 0;
+VarBit.nameFromId = function(id) {
+  let s = String.fromCharCode(97 + (id % 26));
+  for (let r = (id / 26) >>> 0; r > 0; r = ((r-1) / 26) >>> 0) {
+    s = String.fromCharCode(97 + ((r-1) % 26)) + s;
+  }
+  return s;
+};
