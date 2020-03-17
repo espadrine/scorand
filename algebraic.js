@@ -13,9 +13,7 @@ export class State {
 // Logic gates: https://en.wikipedia.org/wiki/Logic_gate
 
 class Bit {
-  constructor() {
-    this.type = this.constructor;
-  }
+  constructor() { this.type = this.constructor; }
 }
 
 export class ConstantBit extends Bit {
@@ -44,3 +42,28 @@ VarBit.nameFromId = function(id) {
   }
   return s;
 };
+
+// The basics: ARX.
+
+class AssocOpBit extends Bit {
+  constructor(left, right) {
+    super();
+    // Since it is associative, we present all operands as a list.
+    this.operands = [left, right];
+  }
+}
+
+class AssocCommOpBit extends AssocOpBit {
+  constructor(left, right) {
+    super(left, right);
+  }
+}
+
+export class XorBit extends AssocCommOpBit {
+  constructor(left, right) {
+    super(left, right);
+  }
+  toString() {
+    return '(' + this.operands.map(o => o.toString()).join('⊕') + ')';
+  }
+}

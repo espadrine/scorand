@@ -1,5 +1,5 @@
 import {strict as assert} from 'assert';
-import {ConstantBit, VarBit} from '../algebraic.js';
+import {ConstantBit, VarBit, XorBit} from '../algebraic.js';
 
 // ConstantBit
 assert.equal(new ConstantBit(0).value, 0);
@@ -20,3 +20,6 @@ assert.equal(new VarBit().toString(), 'zz');
 assert.equal(new VarBit().toString(), 'aaa');
 assert.equal(new VarBit().toString(), 'aab');
 VarBit.varId = 0;
+
+// XorBit
+assert.equal(new XorBit(new VarBit(), new VarBit()).toString(), '(a⊕b)');
