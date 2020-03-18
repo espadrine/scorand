@@ -14,6 +14,8 @@ export class State {
 
 class Bit {
   constructor() { this.type = this.constructor; }
+  copy() { return new this.type(); }
+  reduce() { return this.copy(); }
 }
 
 export class ConstantBit extends Bit {
@@ -23,6 +25,7 @@ export class ConstantBit extends Bit {
     this.set(bit);
   }
   set(bit) { this.value = (+bit)? 1: 0; return this; }
+  copy() { return new this.type(this.value); }
   toString() { return String(this.value); }
 }
 
@@ -31,6 +34,12 @@ export class VarBit extends Bit {
     super();
     this.id = VarBit.varId++;
     this.name = VarBit.nameFromId(this.id);
+  }
+  copy() {
+    let b = new this.type();
+    b.id = this.id;
+    b.name = this.name;
+    return b;
   }
   toString() { return this.name; }
 }
@@ -46,24 +55,70 @@ VarBit.nameFromId = function(id) {
 // The basics: ARX.
 
 class AssocOpBit extends Bit {
-  constructor(left, right) {
+  constructor(operands) {
     super();
     // Since it is associative, we present all operands as a list.
-    this.operands = [left, right];
+    this.operands = operands.slice();
   }
+  copy() { return new this.type(this.operands); }
 }
 
 class AssocCommOpBit extends AssocOpBit {
-  constructor(left, right) {
-    super(left, right);
+  constructor(operands) { super(operands); }
+  reduce() {
+    let b = super.reduce();
+    b.operands = b.operands.map(o => o.reduce());
+    // Order the operands.
+    b.operands = b.operands.sort((a, b) =>
+      a.toString() > b.toString()? 1: -1);
+    return b;
   }
 }
 
 export class XorBit extends AssocCommOpBit {
-  constructor(left, right) {
-    super(left, right);
-  }
+  constructor(operands) { super(operands); }
   toString() {
     return '(' + this.operands.map(o => o.toString()).join('⊕') + ')';
+  }
+  // A ⊕ A = 0.
+  reduceDup() {
+    let b = super.reduce();
+    let dups = b.operands.reduce((m, o) => {
+      let str = o.toString();
+      let c = m.get(str);
+      if (!c) { c = 0; m.set(str, c); }
+      m.set(str, c + 1);
+      return m;
+    }, new Map());
+    let opds = [], treated = new Map();
+    for (let i = b.operands.length - 1; i >= 0; i--) {
+      let op = b.operands[i], str = op.toString();
+      if (treated.has(str)) { continue; }
+      let c = dups.get(str);
+      if (c % 2 === 1) { // One remains.
+        opds.push(op);
+      } else {} // They all cancel out.
+      treated.set(str, true);
+    }
+    b.operands = opds;
+    return b;
+  }
+  // A ⊕ ¬A = 1
+  reduceOpposites() {
+    // TODO
+    return super.reduce();
+  }
+  reduceConst() {
+    let b = super.reduce();
+    // TODO: compute constant xors.
+    if (b.operands.length === 0) {
+      return new ConstantBit(0);
+    } else if (b.operands.length === 1) {
+      return b.operands[0];
+    }
+    return b;
+  }
+  reduce() {
+    return this.reduceDup().reduceOpposites().reduceConst();
   }
 }
