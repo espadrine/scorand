@@ -80,9 +80,11 @@ export class XorBit extends AssocCommOpBit {
   toString() {
     return '(' + this.operands.map(o => o.toString()).join('⊕') + ')';
   }
+
   // A ⊕ A = 0.
   reduceDup() {
     let b = super.reduce();
+    // Count operands with the same representation.
     let dups = b.operands.reduce((m, o) => {
       let str = o.toString();
       let c = m.get(str);
@@ -90,6 +92,7 @@ export class XorBit extends AssocCommOpBit {
       m.set(str, c + 1);
       return m;
     }, new Map());
+
     let opds = [], treated = new Map();
     for (let i = b.operands.length - 1; i >= 0; i--) {
       let op = b.operands[i], str = op.toString();
@@ -103,11 +106,25 @@ export class XorBit extends AssocCommOpBit {
     b.operands = opds;
     return b;
   }
+
   // A ⊕ ¬A = 1
   reduceOpposites() {
-    // TODO
-    return super.reduce();
+    let b = super.reduce();
+    let pos = b.operands.reduce((s, o) => s.add(o.toString()), new Set());
+    let neg = b.operands.reduce((s, o) => (o.type !== NotBit)? s:
+      s.add(o.operand.toString()), new Set());
+    let count = b.operands.filter(o => neg.has(o.toString())).length;
+    // Remove operands that are compensated by their opposite.
+    b.operands = b.operands.filter(o => !(
+      // Positive that has a negative.
+      neg.has(o.toString()) ||
+      // Negative that has a positive.
+      ((o.type === NotBit) && pos.has(o.operand.toString()))));
+    // Add the one.
+    if (count % 2 === 1) { b.operands.push(new ConstantBit(1)); }
+    return b;
   }
+
   reduceConst() {
     let b = super.reduce();
     // TODO: compute constant xors.
@@ -121,4 +138,27 @@ export class XorBit extends AssocCommOpBit {
   reduce() {
     return this.reduceDup().reduceOpposites().reduceConst();
   }
+}
+
+export class OrBit extends AssocOpBit {
+  constructor(operands) { super(operands); }
+  toString() {
+    return '(' + this.operands.map(o => o.toString()).join('∨') + ')';
+  }
+}
+
+export class AndBit extends AssocOpBit {
+  constructor(operands) { super(operands); }
+  toString() {
+    return '(' + this.operands.map(o => o.toString()).join('∧') + ')';
+  }
+}
+
+export class NotBit extends Bit {
+  constructor(expr) {
+    super();
+    this.operand = expr;
+  }
+  copy() { return new this.type(this.operand); }
+  toString() { return '¬' + this.operand.toString(); }
 }
