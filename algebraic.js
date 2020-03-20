@@ -127,7 +127,10 @@ export class XorBit extends AssocCommOpBit {
 
   reduceConst() {
     let b = super.reduce();
-    // TODO: compute constant xors.
+    // Remove zeroes.
+    b.operands = b.operands.filter(o =>
+      !(o.type === ConstantBit && o.value === 0));
+    // TODO: compute xors with 1.
     if (b.operands.length === 0) {
       return new ConstantBit(0);
     } else if (b.operands.length === 1) {
