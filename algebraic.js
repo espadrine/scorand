@@ -127,33 +127,24 @@ export class XorBit extends AssocCommOpBit {
 
   reduceConst() {
     let b = super.reduce();
-    // Remove zeroes.
-    b.operands = b.operands.filter(o =>
-      !(o.type === ConstantBit && o.value === 0));
-    // TODO: compute xors with 1.
+    // Ones annihilate pairwise. The last one is equivalent to a NOT.
+    let ones = b.operands.filter(o =>
+      (o.type === ConstantBit) && o.value === 1).length;
+    // Remove zeroes (always true),
+    // and ones (only the odd one matters, by being converted to a NOT.)
+    b.operands = b.operands.filter(o => o.type !== ConstantBit);
+
     if (b.operands.length === 0) {
-      return new ConstantBit(0);
+      b = new ConstantBit(0);
     } else if (b.operands.length === 1) {
-      return b.operands[0];
+      b = b.operands[0];
     }
+
+    if (ones % 2 === 1) { return new NotBit(b).reduce(); }
     return b;
   }
   reduce() {
     return this.reduceDup().reduceOpposites().reduceConst();
-  }
-}
-
-export class OrBit extends AssocOpBit {
-  constructor(operands) { super(operands); }
-  toString() {
-    return '(' + this.operands.map(o => o.toString()).join('∨') + ')';
-  }
-}
-
-export class AndBit extends AssocOpBit {
-  constructor(operands) { super(operands); }
-  toString() {
-    return '(' + this.operands.map(o => o.toString()).join('∧') + ')';
   }
 }
 
@@ -163,5 +154,16 @@ export class NotBit extends Bit {
     this.operand = expr;
   }
   copy() { return new this.type(this.operand); }
+  reduce() {
+    let b = super.reduce();
+    b.operand = b.operand.reduce();
+    // TODO Double negation.
+    // Constant reduction.
+    if (b.operand.type === ConstantBit) {
+      if (b.value > 0) { return new ConstantBit(0); }
+      else { return new ConstantBit(1); }
+    }
+    return b;
+  }
   toString() { return '¬' + this.operand.toString(); }
 }

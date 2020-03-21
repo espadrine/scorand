@@ -29,6 +29,22 @@ assert.equal(new XorBit([a]).reduce().toString(), 'a');
 assert.equal(new XorBit([a, new NotBit(a)]).reduce().toString(), '1');
 assert.equal(new XorBit([a, new ConstantBit(0)])
   .reduce().toString(), 'a');
+assert.equal(new XorBit([
+  a, new ConstantBit(1),
+  a, new ConstantBit(1), b])
+  .reduce().toString(), 'b');
+assert.equal(new XorBit([new ConstantBit(1),
+  a, new ConstantBit(1),
+  a, new ConstantBit(1), b])
+  .reduce().toString(), '¬b');
+assert.equal(new XorBit([a, 
+  a, new ConstantBit(1),
+  a, new ConstantBit(1), b])
+  .reduce().toString(), '(a⊕b)');
+assert.equal(new XorBit([a, new ConstantBit(1),
+  a, new ConstantBit(1),
+  a, new ConstantBit(1), b])
+  .reduce().toString(), '¬(a⊕b)');
 
 // NotBit
 assert.equal(new NotBit(new ConstantBit(0)).toString(), '¬0');
