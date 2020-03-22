@@ -27,6 +27,8 @@ let a = new VarBit(), b = new VarBit(), c = new VarBit();
 // NotBit
 assert.equal(new NotBit(new ConstantBit(0)).toString(), '¬0');
 assert.equal(new NotBit(a).toString(), '¬a');
+assert.equal(new NotBit(new NotBit(a)).reduce().toString(), 'a');
+assert.equal(new NotBit(new ConstantBit(0)).reduce().toString(), '1');
 
 // XorBit
 assert.equal(new XorBit([a, b]).toString(), '(a⊕b)');

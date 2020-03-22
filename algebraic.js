@@ -52,6 +52,29 @@ VarBit.nameFromId = function(id) {
   return s;
 };
 
+export class NotBit extends Bit {
+  constructor(expr) {
+    super();
+    this.operand = expr;
+  }
+  copy() { return new this.type(this.operand); }
+  reduce() {
+    let b = super.reduce();
+    b.operand = b.operand.reduce();
+    // Double negation.
+    if (b.operand.type === NotBit) {
+      return b.operand.operand;
+    }
+    // Constant reduction.
+    if (b.operand.type === ConstantBit) {
+      if (b.value > 0) { return new ConstantBit(0); }
+      else { return new ConstantBit(1); }
+    }
+    return b;
+  }
+  toString() { return '¬' + this.operand.toString(); }
+}
+
 // The basics: ARX.
 
 class AssocOpBit extends Bit {
@@ -176,24 +199,4 @@ export class AndBit extends AssocOpBit {
   toString() {
     return '(' + this.operands.map(o => o.toString()).join('∧') + ')';
   }
-}
-
-export class NotBit extends Bit {
-  constructor(expr) {
-    super();
-    this.operand = expr;
-  }
-  copy() { return new this.type(this.operand); }
-  reduce() {
-    let b = super.reduce();
-    b.operand = b.operand.reduce();
-    // TODO Double negation.
-    // Constant reduction.
-    if (b.operand.type === ConstantBit) {
-      if (b.value > 0) { return new ConstantBit(0); }
-      else { return new ConstantBit(1); }
-    }
-    return b;
-  }
-  toString() { return '¬' + this.operand.toString(); }
 }
