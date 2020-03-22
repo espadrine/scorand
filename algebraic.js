@@ -56,11 +56,26 @@ VarBit.nameFromId = function(id) {
 
 class AssocOpBit extends Bit {
   constructor(operands) {
+    if (!(operands instanceof Array)) {
+      throw TypeError('Invalid non-array operand for AssocOpBit:' +
+        operands);
+    }
     super();
     // Since it is associative, we present all operands as a list.
     this.operands = operands.slice();
   }
   copy() { return new this.type(this.operands); }
+  reduce() {
+    let b = super.reduce();
+    // Associativity.
+    b.operands = b.operands.reduce((opds, o) => {
+      if (o.type === this.type) {
+        opds = opds.concat(o.operands);
+      } else { opds.push(o); }
+      return opds;
+    }, []);
+    return b;
+  }
 }
 
 class AssocCommOpBit extends AssocOpBit {
@@ -81,7 +96,7 @@ export class XorBit extends AssocCommOpBit {
     return '(' + this.operands.map(o => o.toString()).join('⊕') + ')';
   }
 
-  // A ⊕ A = 0.
+  // Positive annihilation: A ⊕ A = 0.
   reduceDup() {
     let b = super.reduce();
     // Count operands with the same representation.
@@ -107,7 +122,7 @@ export class XorBit extends AssocCommOpBit {
     return b;
   }
 
-  // A ⊕ ¬A = 1
+  // Negative annihilation: A ⊕ ¬A = 1
   reduceOpposites() {
     let b = super.reduce();
     let pos = b.operands.reduce((s, o) => s.add(o.toString()), new Set());
@@ -125,6 +140,7 @@ export class XorBit extends AssocCommOpBit {
     return b;
   }
 
+  // Zero identity; One conversion.
   reduceConst() {
     let b = super.reduce();
     // Ones annihilate pairwise. The last one is equivalent to a NOT.
@@ -145,6 +161,20 @@ export class XorBit extends AssocCommOpBit {
   }
   reduce() {
     return this.reduceDup().reduceOpposites().reduceConst();
+  }
+}
+
+export class OrBit extends AssocOpBit {
+  constructor(operands) { super(operands); }
+  toString() {
+    return '(' + this.operands.map(o => o.toString()).join('∨') + ')';
+  }
+}
+
+export class AndBit extends AssocOpBit {
+  constructor(operands) { super(operands); }
+  toString() {
+    return '(' + this.operands.map(o => o.toString()).join('∧') + ')';
   }
 }
 

@@ -22,8 +22,10 @@ assert.equal(new VarBit().toString(), 'aab');
 VarBit.varId = 0;
 
 // XorBit
-let a = new VarBit(), b = new VarBit();
+let a = new VarBit(), b = new VarBit(), c = new VarBit();
 assert.equal(new XorBit([a, b]).toString(), '(a⊕b)');
+assert.equal(new XorBit([a, new XorBit([b, c])]).reduce().toString(),
+  '(a⊕b⊕c)');
 assert.equal(new XorBit([a, a]).reduce().toString(), '0');
 assert.equal(new XorBit([a]).reduce().toString(), 'a');
 assert.equal(new XorBit([a, new NotBit(a)]).reduce().toString(), '1');
