@@ -1,5 +1,6 @@
 import {strict as assert} from 'assert';
-import {ConstantBit, VarBit, XorBit, NotBit} from '../algebraic.js';
+import {ConstantBit, VarBit, NotBit, XorBit, AndBit, OrBit}
+from '../algebraic.js';
 
 // ConstantBit
 assert.equal(new ConstantBit(0).value, 0);
@@ -19,10 +20,15 @@ VarBit.varId = 27 * 26 - 1;
 assert.equal(new VarBit().toString(), 'zz');
 assert.equal(new VarBit().toString(), 'aaa');
 assert.equal(new VarBit().toString(), 'aab');
+
 VarBit.varId = 0;
+let a = new VarBit(), b = new VarBit(), c = new VarBit();
+
+// NotBit
+assert.equal(new NotBit(new ConstantBit(0)).toString(), '¬0');
+assert.equal(new NotBit(a).toString(), '¬a');
 
 // XorBit
-let a = new VarBit(), b = new VarBit(), c = new VarBit();
 assert.equal(new XorBit([a, b]).toString(), '(a⊕b)');
 assert.equal(new XorBit([a, new XorBit([b, c])]).reduce().toString(),
   '(a⊕b⊕c)');
@@ -39,7 +45,7 @@ assert.equal(new XorBit([new ConstantBit(1),
   a, new ConstantBit(1),
   a, new ConstantBit(1), b])
   .reduce().toString(), '¬b');
-assert.equal(new XorBit([a, 
+assert.equal(new XorBit([a,
   a, new ConstantBit(1),
   a, new ConstantBit(1), b])
   .reduce().toString(), '(a⊕b)');
@@ -48,6 +54,12 @@ assert.equal(new XorBit([a, new ConstantBit(1),
   a, new ConstantBit(1), b])
   .reduce().toString(), '¬(a⊕b)');
 
-// NotBit
-assert.equal(new NotBit(new ConstantBit(0)).toString(), '¬0');
-assert.equal(new NotBit(a).toString(), '¬a');
+// AndBit
+assert.equal(new AndBit([a, b]).toString(), '(a∧b)');
+assert.equal(new AndBit([a, new AndBit([b, c])]).reduce().toString(),
+  '(a∧b∧c)');
+
+// OrBit
+assert.equal(new OrBit([a, b]).toString(), '(a∨b)');
+assert.equal(new OrBit([a, new OrBit([b, c])]).reduce().toString(),
+  '(a∨b∨c)');
