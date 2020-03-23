@@ -62,9 +62,7 @@ export class NotBit extends Bit {
     let b = super.reduce();
     b.operand = b.operand.reduce();
     // Double negation.
-    if (b.operand.type === NotBit) {
-      return b.operand.operand;
-    }
+    if (b.operand.type === NotBit) { return b.operand.operand; }
     // Constant reduction.
     if (b.operand.type === ConstantBit) {
       if (b.value > 0) { return new ConstantBit(0); }
@@ -106,10 +104,13 @@ class AssocCommOpBit extends AssocOpBit {
   reduce() {
     let b = super.reduce();
     b.operands = b.operands.map(o => o.reduce());
-    // Order the operands.
-    b.operands = b.operands.sort((a, b) =>
-      a.toString() > b.toString()? 1: -1);
     return b;
+  }
+  sort() {
+    // Order the operands.
+    this.operands = this.operands.sort((a, b) =>
+      a.toString() > b.toString()? 1: -1);
+    return this;
   }
 }
 
@@ -121,7 +122,7 @@ export class XorBit extends AssocCommOpBit {
 
   // Positive annihilation: A ⊕ A = 0.
   reduceDup() {
-    let b = super.reduce();
+    let b = this.copy();
     // Count operands with the same representation.
     let dups = b.operands.reduce((m, o) => {
       let str = o.toString();
@@ -147,7 +148,7 @@ export class XorBit extends AssocCommOpBit {
 
   // Negative annihilation: A ⊕ ¬A = 1
   reduceOpposites() {
-    let b = super.reduce();
+    let b = this.copy();
     let pos = b.operands.reduce((s, o) => s.add(o.toString()), new Set());
     let neg = b.operands.reduce((s, o) => (o.type !== NotBit)? s:
       s.add(o.operand.toString()), new Set());
@@ -165,7 +166,7 @@ export class XorBit extends AssocCommOpBit {
 
   // Zero identity; One conversion.
   reduceConst() {
-    let b = super.reduce();
+    let b = this.copy();
     // Ones annihilate pairwise. The last one is equivalent to a NOT.
     let ones = b.operands.filter(o =>
       (o.type === ConstantBit) && o.value === 1).length;
@@ -183,18 +184,63 @@ export class XorBit extends AssocCommOpBit {
     return b;
   }
   reduce() {
-    return this.reduceDup().reduceOpposites().reduceConst();
+    return super.reduce().reduceDup().reduceOpposites()
+      .sort().reduceConst();
   }
 }
 
-export class OrBit extends AssocOpBit {
+export class OrBit extends AssocCommOpBit {
   constructor(operands) { super(operands); }
   toString() {
     return '(' + this.operands.map(o => o.toString()).join('∨') + ')';
   }
+
+  reduceAnnihilator() {
+    let b = this.copy();
+    if (b.operands.some(o => o.type === ConstantBit && o.value === 1)) {
+      b.operands = [new ConstantBit(1)];
+    }
+    return b;
+  }
+
+  reduceIdentity() {
+    // TODO
+    let b = this.copy();
+    return b;
+  }
+
+  reduceIdempotence() {
+    // TODO
+    let b = this.copy();
+    return b;
+  }
+
+  reduceAbsorption() {
+    // TODO
+    let b = this.copy();
+    return b;
+  }
+
+  reduceDistributivity() {
+    // TODO
+    let b = this.copy();
+
+    if (b.operands.length === 1) {
+      b = b.operands[0];
+    }
+    return b;
+  }
+
+  reduce() {
+    // We put the annihilator early to avoid unnecessary computation.
+    // Only the last reduction (after the sort) can yield a non-OR.
+    return super.reduce().reduceAnnihilator().reduceIdentity()
+      .reduceIdempotence().reduceAbsorption().sort().reduceDistributivity();
+
+  }
 }
 
-export class AndBit extends AssocOpBit {
+export class AndBit extends AssocCommOpBit {
   constructor(operands) { super(operands); }
   toString() {
     return '(' + this.operands.map(o => o.toString()).join('∧') + ')';

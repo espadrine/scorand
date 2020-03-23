@@ -23,12 +23,13 @@ assert.equal(new VarBit().toString(), 'aab');
 
 VarBit.varId = 0;
 let a = new VarBit(), b = new VarBit(), c = new VarBit();
+let zero = new ConstantBit(0), one = new ConstantBit(1);
 
 // NotBit
-assert.equal(new NotBit(new ConstantBit(0)).toString(), '¬0');
+assert.equal(new NotBit(zero).toString(), '¬0');
 assert.equal(new NotBit(a).toString(), '¬a');
 assert.equal(new NotBit(new NotBit(a)).reduce().toString(), 'a');
-assert.equal(new NotBit(new ConstantBit(0)).reduce().toString(), '1');
+assert.equal(new NotBit(zero).reduce().toString(), '1');
 
 // XorBit
 assert.equal(new XorBit([a, b]).toString(), '(a⊕b)');
@@ -37,31 +38,22 @@ assert.equal(new XorBit([a, new XorBit([b, c])]).reduce().toString(),
 assert.equal(new XorBit([a, a]).reduce().toString(), '0');
 assert.equal(new XorBit([a]).reduce().toString(), 'a');
 assert.equal(new XorBit([a, new NotBit(a)]).reduce().toString(), '1');
-assert.equal(new XorBit([a, new ConstantBit(0)])
-  .reduce().toString(), 'a');
-assert.equal(new XorBit([
-  a, new ConstantBit(1),
-  a, new ConstantBit(1), b])
-  .reduce().toString(), 'b');
-assert.equal(new XorBit([new ConstantBit(1),
-  a, new ConstantBit(1),
-  a, new ConstantBit(1), b])
+assert.equal(new XorBit([a, zero]).reduce().toString(), 'a');
+assert.equal(new XorBit([a, one, a, one, b]).reduce().toString(), 'b');
+assert.equal(new XorBit([one, a, one, a, one, b])
   .reduce().toString(), '¬b');
-assert.equal(new XorBit([a,
-  a, new ConstantBit(1),
-  a, new ConstantBit(1), b])
+assert.equal(new XorBit([a, a, one, a, one, b])
   .reduce().toString(), '(a⊕b)');
-assert.equal(new XorBit([a, new ConstantBit(1),
-  a, new ConstantBit(1),
-  a, new ConstantBit(1), b])
+assert.equal(new XorBit([a, one, a, one, a, one, b])
   .reduce().toString(), '¬(a⊕b)');
-
-// AndBit
-assert.equal(new AndBit([a, b]).toString(), '(a∧b)');
-assert.equal(new AndBit([a, new AndBit([b, c])]).reduce().toString(),
-  '(a∧b∧c)');
 
 // OrBit
 assert.equal(new OrBit([a, b]).toString(), '(a∨b)');
 assert.equal(new OrBit([a, new OrBit([b, c])]).reduce().toString(),
   '(a∨b∨c)');
+assert.equal(new OrBit([a, one]).reduce().toString(), '1');
+
+// AndBit
+assert.equal(new AndBit([a, b]).toString(), '(a∧b)');
+assert.equal(new AndBit([a, new AndBit([b, c])]).reduce().toString(),
+  '(a∧b∧c)');
