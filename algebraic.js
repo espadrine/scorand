@@ -195,6 +195,7 @@ export class OrBit extends AssocCommOpBit {
     return '(' + this.operands.map(o => o.toString()).join('∨') + ')';
   }
 
+  // Annihilator: A ∨ 1 = 1
   reduceAnnihilator() {
     let b = this.copy();
     if (b.operands.some(o => o.type === ConstantBit && o.value === 1)) {
@@ -203,9 +204,11 @@ export class OrBit extends AssocCommOpBit {
     return b;
   }
 
+  // Identity: A ∨ 0 = A
   reduceIdentity() {
-    // TODO
     let b = this.copy();
+    b.operands = b.operands.filter(o =>
+      !(o.type === ConstantBit && o.value === 0));
     return b;
   }
 
