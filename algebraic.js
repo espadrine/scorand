@@ -212,9 +212,18 @@ export class OrBit extends AssocCommOpBit {
     return b;
   }
 
+  // Idempotency: A ∨ A = A
   reduceIdempotence() {
-    // TODO
     let b = this.copy();
+    let reprs = new Set();
+    b.operands = b.operands.reduce((ops, o) => {
+      let repr = o.toString();
+      if (!reprs.has(repr)) {
+        reprs.add(repr);
+        ops.push(o);
+      }
+      return ops;
+    }, []);
     return b;
   }
 
