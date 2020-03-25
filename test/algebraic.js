@@ -54,6 +54,7 @@ assert.equal(new OrBit([a, new OrBit([b, c])]).reduce().toString(),
 assert.equal(new OrBit([a, one]).reduce().toString(), '1');
 assert.equal(new OrBit([a, zero]).reduce().toString(), 'a');
 assert.equal(new OrBit([a, a]).reduce().toString(), 'a');
+assert.equal(new OrBit([a, new AndBit([b, a])]).reduce().toString(), 'a');
 
 // AndBit
 assert.equal(new AndBit([a, b]).toString(), '(a∧b)');

@@ -227,9 +227,13 @@ export class OrBit extends AssocCommOpBit {
     return b;
   }
 
+  // Absorption: A ∨ (A ∧ B) = A
   reduceAbsorption() {
-    // TODO
     let b = this.copy();
+    let reprs = b.operands.reduce((reprs, o) =>
+      reprs.add(o.toString()), new Set());
+    b.operands = b.operands.filter(o => !(o.type === AndBit &&
+      o.operands.some(oo => reprs.has(oo.toString()))));
     return b;
   }
 
