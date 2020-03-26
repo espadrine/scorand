@@ -121,6 +121,8 @@ export class XorBit extends AssocCommOpBit {
   }
 
   // Positive annihilation: A ⊕ A = 0.
+  // Note that negative annihilation (A ⊕ ¬A = 1) is also taken care of, because
+  // NOT factorization is performed first.
   reduceDup() {
     let b = this.copy();
     // Count operands with the same representation.
@@ -146,24 +148,6 @@ export class XorBit extends AssocCommOpBit {
     return b;
   }
 
-  // Negative annihilation: A ⊕ ¬A = 1
-  reduceOpposites() {
-    let b = this.copy();
-    let pos = b.operands.reduce((s, o) => s.add(o.toString()), new Set());
-    let neg = b.operands.reduce((s, o) => (o.type !== NotBit)? s:
-      s.add(o.operand.toString()), new Set());
-    let count = b.operands.filter(o => neg.has(o.toString())).length;
-    // Remove operands that are compensated by their opposite.
-    b.operands = b.operands.filter(o => !(
-      // Positive that has a negative.
-      neg.has(o.toString()) ||
-      // Negative that has a positive.
-      ((o.type === NotBit) && pos.has(o.operand.toString()))));
-    // Add the one.
-    if (count % 2 === 1) { b.operands.push(new ConstantBit(1)); }
-    return b;
-  }
-
   // Zero identity; One conversion.
   reduceConst() {
     let b = this.copy();
@@ -183,9 +167,19 @@ export class XorBit extends AssocCommOpBit {
     if (ones % 2 === 1) { return new NotBit(b).reduce(); }
     return b;
   }
+
   reduce() {
-    return super.reduce().reduceDup().reduceOpposites()
-      .sort().reduceConst();
+    let b = super.reduce();
+    // Not factorization: (¬A ⊕ B) = ¬(A ⊕ B).
+    // We must do it before doing positive annihilation (reduceDup), but it can
+    // change the bit to a NotBit, so we only set b after all reductions.
+    let negCount = b.operands.reduce((count, o) =>
+      o.type === NotBit? count + 1: count, 0);
+    b.operands = b.operands.map(o => o.type === NotBit? o.operand: o);
+    b = b.reduceDup().sort().reduceConst();
+    // The NOTs cancel pairwise; if there is one remaining, it becomes this bit.
+    if (negCount % 2 === 1) { b = new NotBit(b).reduce(); }
+    return b;
   }
 }
 
