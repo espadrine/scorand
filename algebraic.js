@@ -231,22 +231,46 @@ export class OrBit extends AssocCommOpBit {
     return b;
   }
 
+  // Distributivity: (A∧B) ∨ (A∧C) = A ∧ (B∨C)
+  // Note: since DNF is easier to solve SAT for,
+  // do we really want to perform this reduction?
   reduceDistributivity() {
-    // TODO
     let b = this.copy();
-
-    if (b.operands.length === 1) {
-      b = b.operands[0];
+    // If the OR has more than 2 operands, we probably won’t gain much.
+    // For instance, (A∧B) ∨ (A∧C) ∨ D ∨ E = (A∨D∨E) ∧ (B∨C∨D∨E),
+    // which goes from 5 operations to 6, complexifying the expression.
+    if (b.operands.length !== 2 ||
+      b.operands.some(o => o.type !== AndBit || o.operands.length !== 2)) {
+      return b;
     }
+
+    // Find a common operand among the AND operands.
+    const b0 = b.operands[0], b1 = b.operands[1];
+    const b00 = b0.operands[0], b01 = b0.operands[1];
+    const b10 = b1.operands[0], b11 = b1.operands[1];
+    let pivot, others;
+    if (b00.toString() === b10.toString()) {
+      pivot = b00.copy(); others = [b01.copy(), b11.copy()];
+    } else if (b00.toString() === b11.toString()) {
+      pivot = b00.copy(); others = [b01.copy(), b10.copy()];
+    } else if (b01.toString() === b10.toString()) {
+      pivot = b01.copy(); others = [b00.copy(), b11.copy()];
+    } else if (b01.toString() === b11.toString()) {
+      pivot = b01.copy(); others = [b00.copy(), b01.copy()];
+    }
+    if (pivot !== undefined) { b = new AndBit([pivot, new OrBit(others)]); }
     return b;
   }
 
   reduce() {
     // We put the annihilator early to avoid unnecessary computation.
     // Only the last reduction (after the sort) can yield a non-OR.
-    return super.reduce().reduceAnnihilator().reduceIdentity()
+    let b = super.reduce().reduceAnnihilator().reduceIdentity()
       .reduceIdempotence().reduceAbsorption().sort().reduceDistributivity();
-
+    if (b.operands && b.operands.length === 1) {
+      b = b.operands[0];
+    }
+    return b;
   }
 }
 

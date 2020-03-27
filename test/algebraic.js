@@ -22,7 +22,7 @@ assert.equal(new VarBit().toString(), 'aaa');
 assert.equal(new VarBit().toString(), 'aab');
 
 VarBit.varId = 0;
-let a = new VarBit(), b = new VarBit(), c = new VarBit();
+let a = new VarBit(), b = new VarBit(), c = new VarBit(), d = new VarBit();
 let zero = new ConstantBit(0), one = new ConstantBit(1);
 
 // NotBit
@@ -57,6 +57,8 @@ assert.equal(new OrBit([a, one]).reduce().toString(), '1');
 assert.equal(new OrBit([a, zero]).reduce().toString(), 'a');
 assert.equal(new OrBit([a, a]).reduce().toString(), 'a');
 assert.equal(new OrBit([a, new AndBit([b, a])]).reduce().toString(), 'a');
+assert.equal(new OrBit([new AndBit([a, b]), new AndBit([a, c])])
+  .reduce().toString(), '(a∧(b∨c))');
 
 // AndBit
 assert.equal(new AndBit([a, b]).toString(), '(a∧b)');
