@@ -246,19 +246,14 @@ export class OrBit extends AssocCommOpBit {
 
     // Find a common operand among the AND operands.
     const b0 = b.operands[0], b1 = b.operands[1];
-    const b00 = b0.operands[0], b01 = b0.operands[1];
-    const b10 = b1.operands[0], b11 = b1.operands[1];
-    let pivot, others;
-    if (b00.toString() === b10.toString()) {
-      pivot = b00.copy(); others = [b01.copy(), b11.copy()];
-    } else if (b00.toString() === b11.toString()) {
-      pivot = b00.copy(); others = [b01.copy(), b10.copy()];
-    } else if (b01.toString() === b10.toString()) {
-      pivot = b01.copy(); others = [b00.copy(), b11.copy()];
-    } else if (b01.toString() === b11.toString()) {
-      pivot = b01.copy(); others = [b00.copy(), b01.copy()];
+    let pivot = b0.operands.find(o1 =>
+      b1.operands.some(o2 => o1.toString() === o2.toString()));
+    if (pivot !== undefined) {
+      b = new AndBit([pivot.copy(), new OrBit(
+        b0.operands.filter(o => o.toString() !== pivot.toString()).concat(
+        b1.operands.filter(o => o.toString() !== pivot.toString()))
+      )]);
     }
-    if (pivot !== undefined) { b = new AndBit([pivot, new OrBit(others)]); }
     return b;
   }
 
