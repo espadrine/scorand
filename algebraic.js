@@ -274,4 +274,81 @@ export class AndBit extends AssocCommOpBit {
   toString() {
     return '(' + this.operands.map(o => o.toString()).join('∧') + ')';
   }
+
+  // Annihilator: A ∧ 0 = 0
+  reduceAnnihilator() {
+    let b = this.copy();
+    if (b.operands.some(o => o.type === ConstantBit && o.value === 0)) {
+      b.operands = [new ConstantBit(0)];
+    }
+    return b;
+  }
+
+  // Identity: A ∧ 1 = A
+  reduceIdentity() {
+    let b = this.copy();
+    b.operands = b.operands.filter(o =>
+      !(o.type === ConstantBit && o.value === 1));
+    return b;
+  }
+
+  // Idempotency: A ∧ A = A
+  reduceIdempotence() {
+    let b = this.copy();
+    let reprs = new Set();
+    b.operands = b.operands.reduce((ops, o) => {
+      let repr = o.toString();
+      if (!reprs.has(repr)) {
+        reprs.add(repr);
+        ops.push(o);
+      }
+      return ops;
+    }, []);
+    return b;
+  }
+
+  // Absorption: A ∧ (A ∨ B) = A
+  reduceAbsorption() {
+    let b = this.copy();
+    let reprs = b.operands.reduce((reprs, o) =>
+      reprs.add(o.toString()), new Set());
+    b.operands = b.operands.filter(o => !(o.type === OrBit &&
+      o.operands.some(oo => reprs.has(oo.toString()))));
+    return b;
+  }
+
+  // Distributivity: (A∨B) ∧ (A∨C) = A ∨ (B∧C)
+  reduceDistributivity() {
+    let b = this.copy();
+    // If the AND has more than 2 operands, we probably won’t gain much.
+    // For instance, (A∨B) ∧ (A∨C) ∧ D ∧ E = (A∧D∧E) ∨ (B∧C∧D∧E),
+    // which goes from 5 operations to 6, complexifying the expression.
+    if (b.operands.length !== 2 ||
+      b.operands.some(o => o.type !== OrBit || o.operands.length !== 2)) {
+      return b;
+    }
+
+    // Find a common operand among the AND operands.
+    const b0 = b.operands[0], b1 = b.operands[1];
+    let pivot = b0.operands.find(o1 =>
+      b1.operands.some(o2 => o1.toString() === o2.toString()));
+    if (pivot !== undefined) {
+      b = new OrBit([pivot.copy(), new AndBit(
+        b0.operands.filter(o => o.toString() !== pivot.toString()).concat(
+        b1.operands.filter(o => o.toString() !== pivot.toString()))
+      )]);
+    }
+    return b;
+  }
+
+  reduce() {
+    // We put the annihilator early to avoid unnecessary computation.
+    // Only the last reduction (after the sort) can yield a non-AND.
+    let b = super.reduce().reduceAnnihilator().reduceIdentity()
+      .reduceIdempotence().reduceAbsorption().sort().reduceDistributivity();
+    if (b.operands && b.operands.length === 1) {
+      b = b.operands[0];
+    }
+    return b;
+  }
 }
