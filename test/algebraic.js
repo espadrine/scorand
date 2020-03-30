@@ -59,6 +59,8 @@ assert.equal(new OrBit([a, a]).reduce().toString(), 'a');
 assert.equal(new OrBit([a, new AndBit([b, a])]).reduce().toString(), 'a');
 assert.equal(new OrBit([new AndBit([a, b]), new AndBit([a, c])])
   .reduce().toString(), '(a∧(b∨c))');
+assert.equal(new OrBit([new ConstantBit(0)]).reduce().toString(), '0');
+assert.equal(new OrBit([new ConstantBit(1)]).reduce().toString(), '1');
 
 // AndBit
 assert.equal(new AndBit([a, b]).toString(), '(a∧b)');
@@ -70,3 +72,5 @@ assert.equal(new AndBit([a, a]).reduce().toString(), 'a');
 assert.equal(new AndBit([a, new OrBit([b, a])]).reduce().toString(), 'a');
 assert.equal(new AndBit([new OrBit([a, b]), new OrBit([a, c])])
   .reduce().toString(), '(a∨(b∧c))');
+assert.equal(new AndBit([new ConstantBit(0)]).reduce().toString(), '0');
+assert.equal(new AndBit([new ConstantBit(1)]).reduce().toString(), '1');

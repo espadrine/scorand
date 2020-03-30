@@ -262,8 +262,12 @@ export class OrBit extends AssocCommOpBit {
     // Only the last reduction (after the sort) can yield a non-OR.
     let b = super.reduce().reduceAnnihilator().reduceIdentity()
       .reduceIdempotence().reduceAbsorption().sort().reduceDistributivity();
-    if (b.operands && b.operands.length === 1) {
-      b = b.operands[0];
+    if (b.operands) {
+      if (b.operands.length === 0) {
+        b = new ConstantBit(0);
+      } else if (b.operands.length === 1) {
+        b = b.operands[0];
+      }
     }
     return b;
   }
@@ -346,8 +350,12 @@ export class AndBit extends AssocCommOpBit {
     // Only the last reduction (after the sort) can yield a non-AND.
     let b = super.reduce().reduceAnnihilator().reduceIdentity()
       .reduceIdempotence().reduceAbsorption().sort().reduceDistributivity();
-    if (b.operands && b.operands.length === 1) {
-      b = b.operands[0];
+    if (b.operands) {
+      if (b.operands.length === 0) {
+        b = new ConstantBit(1);
+      } else if (b.operands.length === 1) {
+        b = b.operands[0];
+      }
     }
     return b;
   }
