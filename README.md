@@ -1,7 +1,6 @@
 ## Parameters
 
-- σ (speed) is 100× the inverse of cycles per bytes,
-  rounded: precise ±1 (eg. ChaCha20: 5).
+- σ (speed) is bits per cycle rounded: precise ±0.1 (eg. ChaCha20: 0.4).
 - p (period) such that its smallest proven cycle is 2^p GiB
   (eg. pcg64: 128+6-33 = 101, where 128 bits is the state size
   (which goes through all values),
@@ -66,3 +65,9 @@ By order of expected quality:
 - Correlated streams
 - Non-uniform distribution (eg. impossible, or unlikely, outputs)
 - Reduced-round or -size bias
+
+## Other resources
+
+- [Peter Occil][]’s *Random Number Generator Recommendations for Applications*.
+
+[Peter Occil]: https://peteroupc.github.io/random.html
