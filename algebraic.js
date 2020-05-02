@@ -1,11 +1,12 @@
-export class State {
+export class Buffer {
   // size: in bits.
   constructor(size, bits = []) {
     this.bits = new Array(size);
     for (let i = 0; i < size; i++) {
-      this.bits[i] = bits[i] || new ConstantBit(0);
+      this.bits[i] = bits[i] || new VarBit();
     }
   }
+  size() { return this.bits.length; }
 }
 
 // Information sources:

@@ -1,5 +1,5 @@
 import {strict as assert} from 'assert';
-import {ConstantBit, VarBit, NotBit, XorBit, AndBit, OrBit}
+import {Buffer, ConstantBit, VarBit, NotBit, XorBit, AndBit, OrBit}
 from '../algebraic.js';
 
 // ConstantBit
@@ -74,3 +74,7 @@ assert.equal(new AndBit([new OrBit([a, b]), new OrBit([a, c])])
   .reduce().toString(), '(a∨(b∧c))');
 assert.equal(new AndBit([new ConstantBit(0)]).reduce().toString(), '0');
 assert.equal(new AndBit([new ConstantBit(1)]).reduce().toString(), '1');
+
+// Buffer
+let buf = new Buffer(4);
+assert.equal(buf.size(), 4);
