@@ -78,3 +78,5 @@ assert.equal(new AndBit([new ConstantBit(1)]).reduce().toString(), '1');
 // Buffer
 let buf = new Buffer(4);
 assert.equal(buf.size(), 4);
+assert.equal(Buffer.from([b,
+  new AndBit([a, new ConstantBit(1)])]).toString(), '[b, (a∧1)]');

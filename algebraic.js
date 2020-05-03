@@ -7,7 +7,14 @@ export class Buffer {
     }
   }
   size() { return this.bits.length; }
+  toString() {
+    return '[' + this.bits.join(', ') + ']';
+  }
 }
+
+Buffer.from = function from(bits) {
+  return new Buffer(bits.length, bits);
+};
 
 // Information sources:
 // Boolean Algebra: https://en.wikipedia.org/wiki/Boolean_algebra

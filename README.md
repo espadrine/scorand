@@ -1,6 +1,6 @@
 ## Parameters
 
-- σ (speed) is bits per cycle rounded: precise ±0.1 (eg. ChaCha20: 0.4).
+- σ (speed) is bits per cycle: precise ±0.1 (eg. ChaCha20: 6.6 with SIMD).
 - p (period) such that its smallest proven cycle is 2^p GiB
   (eg. pcg64: 128+6-33 = 101, where 128 bits is the state size
   (which goes through all values),
