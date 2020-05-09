@@ -1,14 +1,16 @@
-export class Buffer {
+export class Buffer extends Array {
   // size: in bits.
   constructor(size, bits = []) {
-    this.bits = new Array(size);
+    super(size);
     for (let i = 0; i < size; i++) {
-      this.bits[i] = bits[i] || new VarBit();
+      this[i] = bits[i] || new VarBit();
     }
   }
-  size() { return this.bits.length; }
+  size() { return this.length; }
+  bitAt(pos) { return this[pos]; }
+  setBitAt(pos, bit) { return this[pos] = bit; }
   toString() {
-    return '[' + this.bits.join(', ') + ']';
+    return '[' + this.join(', ') + ']';
   }
 }
 

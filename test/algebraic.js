@@ -80,3 +80,7 @@ let buf = new Buffer(4);
 assert.equal(buf.size(), 4);
 assert.equal(Buffer.from([b,
   new AndBit([a, new ConstantBit(1)])]).toString(), '[b, (a∧1)]');
+assert.equal(buf.bitAt(1).toString(), 'bo');
+assert.equal(buf.setBitAt(1, new ConstantBit(1)).toString(), '1');
+assert.equal(buf.bitAt(1).toString(), '1');
+assert.equal(buf.slice(1, 3).toString(), '[1, bp]');
