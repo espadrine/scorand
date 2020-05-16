@@ -30,6 +30,7 @@ assert.equal(new NotBit(zero).toString(), '¬0');
 assert.equal(new NotBit(a).toString(), '¬a');
 assert.equal(new NotBit(new NotBit(a)).reduce().toString(), 'a');
 assert.equal(new NotBit(zero).reduce().toString(), '1');
+assert.equal(new NotBit(one).reduce().toString(), '0');
 
 // XorBit
 assert.equal(new XorBit([a, b]).toString(), '(a⊕b)');
@@ -59,8 +60,8 @@ assert.equal(new OrBit([a, a]).reduce().toString(), 'a');
 assert.equal(new OrBit([a, new AndBit([b, a])]).reduce().toString(), 'a');
 assert.equal(new OrBit([new AndBit([a, b]), new AndBit([a, c])])
   .reduce().toString(), '(a∧(b∨c))');
-assert.equal(new OrBit([new ConstantBit(0)]).reduce().toString(), '0');
-assert.equal(new OrBit([new ConstantBit(1)]).reduce().toString(), '1');
+assert.equal(new OrBit([zero]).reduce().toString(), '0');
+assert.equal(new OrBit([one]).reduce().toString(), '1');
 
 // AndBit
 assert.equal(new AndBit([a, b]).toString(), '(a∧b)');
@@ -72,15 +73,16 @@ assert.equal(new AndBit([a, a]).reduce().toString(), 'a');
 assert.equal(new AndBit([a, new OrBit([b, a])]).reduce().toString(), 'a');
 assert.equal(new AndBit([new OrBit([a, b]), new OrBit([a, c])])
   .reduce().toString(), '(a∨(b∧c))');
-assert.equal(new AndBit([new ConstantBit(0)]).reduce().toString(), '0');
-assert.equal(new AndBit([new ConstantBit(1)]).reduce().toString(), '1');
+assert.equal(new AndBit([zero]).reduce().toString(), '0');
+assert.equal(new AndBit([one]).reduce().toString(), '1');
 
 // Buffer
 let buf = new Buffer(4);
 assert.equal(buf.size(), 4);
 assert.equal(Buffer.from([b,
-  new AndBit([a, new ConstantBit(1)])]).toString(), '[b, (a∧1)]');
+  new AndBit([a, one])]).toString(), '[b, (a∧1)]');
 assert.equal(buf.bitAt(1).toString(), 'bo');
-assert.equal(buf.setBitAt(1, new ConstantBit(1)).toString(), '1');
+assert.equal(buf.setBitAt(1, one).toString(), '1');
 assert.equal(buf.bitAt(1).toString(), '1');
 assert.equal(buf.slice(1, 3).toString(), '[1, bp]');
+assert.equal(buf.not().reduce().toString(), '[¬bn, 0, ¬bp, ¬bq]');

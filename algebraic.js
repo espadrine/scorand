@@ -6,9 +6,20 @@ export class Buffer extends Array {
       this[i] = bits[i] || new VarBit();
     }
   }
+
+  not() { return this.copy().map(b => new NotBit(b)); }
+
+  reduce() {
+    for (let i = this.length - 1; i >= 0; i--) {
+      this[i] = this[i].reduce();
+    }
+    return this;
+  }
+
   size() { return this.length; }
   bitAt(pos) { return this[pos]; }
   setBitAt(pos, bit) { return this[pos] = bit; }
+  copy() { return this.slice(); }
   toString() {
     return '[' + this.join(', ') + ']';
   }
@@ -75,7 +86,7 @@ export class NotBit extends Bit {
     if (b.operand.type === NotBit) { return b.operand.operand; }
     // Constant reduction.
     if (b.operand.type === ConstantBit) {
-      if (b.value > 0) { return new ConstantBit(0); }
+      if (b.operand.value > 0) { return new ConstantBit(0); }
       else { return new ConstantBit(1); }
     }
     return b;
