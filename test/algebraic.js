@@ -77,12 +77,14 @@ assert.equal(new AndBit([zero]).reduce().toString(), '0');
 assert.equal(new AndBit([one]).reduce().toString(), '1');
 
 // Buffer
-let buf = new Buffer(4);
-assert.equal(buf.size(), 4);
-assert.equal(Buffer.from([b,
-  new AndBit([a, one])]).toString(), '[b, (a∧1)]');
-assert.equal(buf.bitAt(1).toString(), 'bo');
-assert.equal(buf.setBitAt(1, one).toString(), '1');
-assert.equal(buf.bitAt(1).toString(), '1');
-assert.equal(buf.slice(1, 3).toString(), '[1, bp]');
-assert.equal(buf.not().reduce().toString(), '[¬bn, 0, ¬bp, ¬bq]');
+let buf0 = Buffer.from([a, zero, b, new AndBit([a, c])]);
+let buf1 = Buffer.from(
+  [new NotBit(a), new XorBit([zero, c]), one, new AndBit([b, a]), c]);
+assert.equal(new Buffer(4).size(), 4);
+assert.equal(buf0.toString(), '[a, 0, b, (a∧c)]');
+assert.equal(buf0.bitAt(2).toString(), 'b');
+assert.equal(buf0.setBitAt(1, one).toString(), '1');
+assert.equal(buf0.bitAt(1).toString(), '1');
+buf0.setBitAt(1, zero);
+assert.equal(buf0.slice(1, 3).toString(), '[0, b]');
+assert.equal(buf0.not().reduce().toString(), '[¬a, 1, ¬b, ¬(a∧c)]');
