@@ -88,3 +88,5 @@ assert.equal(buf0.bitAt(1).toString(), '1');
 buf0.setBitAt(1, zero);
 assert.equal(buf0.slice(1, 3).toString(), '[0, b]');
 assert.equal(buf0.not().reduce().toString(), '[¬a, 1, ¬b, ¬(a∧c)]');
+assert.equal(buf0.xor(buf1).reduce().toString(),
+  '[1, c, ¬b, ((a∧b)⊕(a∧c)), c]');
