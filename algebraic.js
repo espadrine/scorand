@@ -8,14 +8,16 @@ export class Buffer extends Array {
   }
 
   not() { return this.copy().map(b => new NotBit(b)); }
-  xor(buf0) {
+  bitwiseOp(buf0, op) {
     const buf1 = this.copy();
     let longer, shorter;
     if (buf0.length > buf1.length) { longer = buf0; shorter = buf1; }
     else                           { longer = buf1; shorter = buf0; }
     return longer.map((b, i) => (shorter[i] === undefined)? b:
-      new XorBit([b, shorter[i]]));
+      new op([b, shorter[i]]));
   }
+  xor(buf) { return this.bitwiseOp(buf, XorBit); }
+  or(buf) { return this.bitwiseOp(buf, OrBit); }
 
   reduce() {
     for (let i = this.length - 1; i >= 0; i--) {

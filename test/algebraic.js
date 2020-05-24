@@ -90,3 +90,5 @@ assert.equal(buf0.slice(1, 3).toString(), '[0, b]');
 assert.equal(buf0.not().reduce().toString(), '[¬a, 1, ¬b, ¬(a∧c)]');
 assert.equal(buf0.xor(buf1).reduce().toString(),
   '[1, c, ¬b, ((a∧b)⊕(a∧c)), c]');
+assert.equal(buf0.or(buf1).reduce().toString(),
+  '[(a∨¬a), c, 1, (a∧(b∨c)), c]');
