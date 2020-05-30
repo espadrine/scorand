@@ -57,6 +57,8 @@ assert.equal(new OrBit([a, new OrBit([b, c])]).reduce().toString(),
 assert.equal(new OrBit([a, one]).reduce().toString(), '1');
 assert.equal(new OrBit([a, zero]).reduce().toString(), 'a');
 assert.equal(new OrBit([a, a]).reduce().toString(), 'a');
+assert.equal(new OrBit([a, b, new NotBit(a)]).reduce().toString(), '1');
+assert.equal(new OrBit([new NotBit(a), b, a]).reduce().toString(), '1');
 assert.equal(new OrBit([a, new AndBit([b, a])]).reduce().toString(), 'a');
 assert.equal(new OrBit([new AndBit([a, b]), new AndBit([a, c])])
   .reduce().toString(), '(a∧(b∨c))');
@@ -91,4 +93,4 @@ assert.equal(buf0.not().reduce().toString(), '[¬a, 1, ¬b, ¬(a∧c)]');
 assert.equal(buf0.xor(buf1).reduce().toString(),
   '[1, c, ¬b, ((a∧b)⊕(a∧c)), c]');
 assert.equal(buf0.or(buf1).reduce().toString(),
-  '[(a∨¬a), c, 1, (a∧(b∨c)), c]');
+  '[1, c, 1, (a∧(b∨c)), c]');

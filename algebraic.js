@@ -252,6 +252,18 @@ export class OrBit extends AssocCommOpBit {
     return b;
   }
 
+  // Complementation: A ∨ ¬A = 1
+  reduceComplementation() {
+    let b = this.copy();
+    let nots = b.operands.reduce((m, o) =>
+      (o.type === NotBit)? m.add(o.operand.toString()): m,
+      new Set());
+    if (b.operands.some(o => nots.has(o.toString()))) {
+      b.operands = [new ConstantBit(1)];
+    }
+    return b;
+  }
+
   // Absorption: A ∨ (A ∧ B) = A
   reduceAbsorption() {
     let b = this.copy();
@@ -292,7 +304,8 @@ export class OrBit extends AssocCommOpBit {
     // We put the annihilator early to avoid unnecessary computation.
     // Only the last reduction (after the sort) can yield a non-OR.
     let b = super.reduce().reduceAnnihilator().reduceIdentity()
-      .reduceIdempotence().reduceAbsorption().sort().reduceDistributivity();
+      .reduceIdempotence().reduceComplementation().reduceAbsorption()
+      .sort().reduceDistributivity();
     if (b.operands) {
       if (b.operands.length === 0) {
         b = new ConstantBit(0);
