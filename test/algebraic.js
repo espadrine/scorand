@@ -72,6 +72,8 @@ assert.equal(new AndBit([a, new AndBit([b, c])]).reduce().toString(),
 assert.equal(new AndBit([a, zero]).reduce().toString(), '0');
 assert.equal(new AndBit([a, one]).reduce().toString(), 'a');
 assert.equal(new AndBit([a, a]).reduce().toString(), 'a');
+assert.equal(new AndBit([a, b, new NotBit(a)]).reduce().toString(), '0');
+assert.equal(new AndBit([new NotBit(a), b, a]).reduce().toString(), '0');
 assert.equal(new AndBit([a, new OrBit([b, a])]).reduce().toString(), 'a');
 assert.equal(new AndBit([new OrBit([a, b]), new OrBit([a, c])])
   .reduce().toString(), '(a∨(b∧c))');
@@ -94,3 +96,21 @@ assert.equal(buf0.xor(buf1).reduce().toString(),
   '[1, c, ¬b, ((a∧b)⊕(a∧c)), c]');
 assert.equal(buf0.or(buf1).reduce().toString(),
   '[1, c, 1, (a∧(b∨c)), c]');
+
+//m.or(n)
+//m.and(n)
+//m.shiftRight(n, 2)
+//m.shiftLeft(n, 2)
+//m.rotateRight(n, 2)
+//m.rotateLeft(n, 2)
+//m = new UInt32(4294967295)
+//n = new UInt32()
+//n.set(3);
+//m.plus(n)
+//m.negative()
+//m.minus(n)
+//m.times(n)
+//m.dividedBy(n)
+//m.modulo(n)
+//m.power(n)
+//m.probabilityOfBitAt(1)
