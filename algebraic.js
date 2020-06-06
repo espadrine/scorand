@@ -229,6 +229,18 @@ export class OrBit extends AssocCommOpBit {
     return b;
   }
 
+  // Complementation: A ∨ ¬A = 1
+  reduceComplementation() {
+    let b = this.copy();
+    let nots = b.operands.reduce((m, o) =>
+      (o.type === NotBit)? m.add(o.operand.toString()): m,
+      new Set());
+    if (b.operands.some(o => nots.has(o.toString()))) {
+      b.operands = [new ConstantBit(1)];
+    }
+    return b;
+  }
+
   // Identity: A ∨ 0 = A
   reduceIdentity() {
     let b = this.copy();
@@ -249,18 +261,6 @@ export class OrBit extends AssocCommOpBit {
       }
       return ops;
     }, []);
-    return b;
-  }
-
-  // Complementation: A ∨ ¬A = 1
-  reduceComplementation() {
-    let b = this.copy();
-    let nots = b.operands.reduce((m, o) =>
-      (o.type === NotBit)? m.add(o.operand.toString()): m,
-      new Set());
-    if (b.operands.some(o => nots.has(o.toString()))) {
-      b.operands = [new ConstantBit(1)];
-    }
     return b;
   }
 
@@ -301,10 +301,10 @@ export class OrBit extends AssocCommOpBit {
   }
 
   reduce() {
-    // We put the annihilator early to avoid unnecessary computation.
+    // We put the annihilators early to avoid unnecessary computation.
     // Only the last reduction (after the sort) can yield a non-OR.
-    let b = super.reduce().reduceAnnihilator().reduceIdentity()
-      .reduceIdempotence().reduceComplementation().reduceAbsorption()
+    let b = super.reduce().reduceAnnihilator().reduceComplementation()
+      .reduceIdentity().reduceIdempotence().reduceAbsorption()
       .sort().reduceDistributivity();
     if (b.operands) {
       if (b.operands.length === 0) {
@@ -332,6 +332,18 @@ export class AndBit extends AssocCommOpBit {
     return b;
   }
 
+  // Complementation: A ∧ ¬A = 0
+  reduceComplementation() {
+    let b = this.copy();
+    let nots = b.operands.reduce((m, o) =>
+      (o.type === NotBit)? m.add(o.operand.toString()): m,
+      new Set());
+    if (b.operands.some(o => nots.has(o.toString()))) {
+      b.operands = [new ConstantBit(0)];
+    }
+    return b;
+  }
+
   // Identity: A ∧ 1 = A
   reduceIdentity() {
     let b = this.copy();
@@ -352,18 +364,6 @@ export class AndBit extends AssocCommOpBit {
       }
       return ops;
     }, []);
-    return b;
-  }
-
-  // Complementation: A ∧ ¬A = 0
-  reduceComplementation() {
-    let b = this.copy();
-    let nots = b.operands.reduce((m, o) =>
-      (o.type === NotBit)? m.add(o.operand.toString()): m,
-      new Set());
-    if (b.operands.some(o => nots.has(o.toString()))) {
-      b.operands = [new ConstantBit(0)];
-    }
     return b;
   }
 
@@ -402,10 +402,10 @@ export class AndBit extends AssocCommOpBit {
   }
 
   reduce() {
-    // We put the annihilator early to avoid unnecessary computation.
+    // We put the annihilators early to avoid unnecessary computation.
     // Only the last reduction (after the sort) can yield a non-AND.
-    let b = super.reduce().reduceAnnihilator().reduceIdentity()
-      .reduceIdempotence().reduceComplementation().reduceAbsorption()
+    let b = super.reduce().reduceAnnihilator().reduceComplementation()
+      .reduceIdentity().reduceIdempotence().reduceAbsorption()
       .sort().reduceDistributivity();
     if (b.operands) {
       if (b.operands.length === 0) {
