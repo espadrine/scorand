@@ -18,6 +18,7 @@ export class Buffer extends Array {
   }
   xor(buf) { return this.bitwiseOp(buf, XorBit); }
   or(buf) { return this.bitwiseOp(buf, OrBit); }
+  and(buf) { return this.bitwiseOp(buf, AndBit); }
 
   reduce() {
     for (let i = this.length - 1; i >= 0; i--) {

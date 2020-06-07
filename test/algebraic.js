@@ -154,9 +154,10 @@ assert.equal(buf0.xor(buf1).reduce().toString(),
 assert.equal(buf0.or(buf1).reduce().toString(),
   '[1, c, 1, (a∧(b∨c)), c]',
   'BUFFER or');
+assert.equal(buf0.and(buf1).reduce().toString(),
+  '[0, 0, b, (a∧b∧c), c]',
+  'BUFFER and');
 
-//m.or(n)
-//m.and(n)
 //m.shiftRight(n, 2)
 //m.shiftLeft(n, 2)
 //m.rotateRight(n, 2)
