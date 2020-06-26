@@ -157,8 +157,16 @@ assert.equal(buf0.or(buf1).reduce().toString(),
 assert.equal(buf0.and(buf1).reduce().toString(),
   '[0, 0, b, (a∧b∧c), c]',
   'BUFFER and');
+assert.equal(buf0.shiftRight(2).reduce().toString(),
+  '[0, 0, a, 0]',
+  'BUFFER shiftRight');
+assert.equal(buf0.shiftRight(0).reduce().toString(),
+  '[a, 0, b, (a∧c)]',
+  'BUFFER shiftRight zero');
+assert.equal(buf0.shiftRight(9).reduce().toString(),
+  '[0, 0, 0, 0]',
+  'BUFFER shiftRight beyond bounds');
 
-//m.shiftRight(n, 2)
 //m.shiftLeft(n, 2)
 //m.rotateRight(n, 2)
 //m.rotateLeft(n, 2)

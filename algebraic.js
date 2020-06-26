@@ -19,6 +19,11 @@ export class Buffer extends Array {
   xor(buf) { return this.bitwiseOp(buf, XorBit); }
   or(buf) { return this.bitwiseOp(buf, OrBit); }
   and(buf) { return this.bitwiseOp(buf, AndBit); }
+  shiftRight(count) {
+    const zeroes = Math.min(count, this.length);
+    return Buffer.from([...new Array(zeroes)].map(e => new ConstantBit(0)))
+      .concat(this.slice(0, this.length - zeroes));
+  }
 
   reduce() {
     for (let i = this.length - 1; i >= 0; i--) {
