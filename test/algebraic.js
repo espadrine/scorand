@@ -166,8 +166,22 @@ assert.equal(buf0.shiftRight(0).reduce().toString(),
 assert.equal(buf0.shiftRight(9).reduce().toString(),
   '[0, 0, 0, 0]',
   'BUFFER shiftRight beyond bounds');
+assert.equal(buf0.shiftRight(-1).reduce().toString(),
+  '[0, b, (a∧c), 0]',
+  'BUFFER shiftRight negative');
+assert.equal(buf0.shiftLeft(2).reduce().toString(),
+  '[b, (a∧c), 0, 0]',
+  'BUFFER shiftLeft');
+assert.equal(buf0.shiftLeft(0).reduce().toString(),
+  '[a, 0, b, (a∧c)]',
+  'BUFFER shiftLeft zero');
+assert.equal(buf0.shiftLeft(9).reduce().toString(),
+  '[0, 0, 0, 0]',
+  'BUFFER shiftLeft beyond bounds');
+assert.equal(buf0.shiftLeft(-1).reduce().toString(),
+  '[0, a, 0, b]',
+  'BUFFER shiftLeft negative');
 
-//m.shiftLeft(n, 2)
 //m.rotateRight(n, 2)
 //m.rotateLeft(n, 2)
 //m = new UInt32(4294967295)

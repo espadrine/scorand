@@ -20,10 +20,18 @@ export class Buffer extends Array {
   or(buf) { return this.bitwiseOp(buf, OrBit); }
   and(buf) { return this.bitwiseOp(buf, AndBit); }
   shiftRight(count) {
+    if (count < 0) { return this.shiftLeft(-count); }
     const zeroes = Math.min(count, this.length);
     return Buffer.from([...new Array(zeroes)].map(e => new ConstantBit(0)))
       .concat(this.slice(0, this.length - zeroes));
   }
+  shiftLeft(count) {
+    if (count < 0) { return this.shiftRight(-count); }
+    const zeroes = Math.min(count, this.length);
+    return this.slice(zeroes).concat(
+      Buffer.from([...new Array(zeroes)].map(e => new ConstantBit(0))));
+  }
+
 
   reduce() {
     for (let i = this.length - 1; i >= 0; i--) {
