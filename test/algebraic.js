@@ -181,6 +181,19 @@ assert.equal(buf0.shiftLeft(9).reduce().toString(),
 assert.equal(buf0.shiftLeft(-1).reduce().toString(),
   '[0, a, 0, b]',
   'BUFFER shiftLeft negative');
+assert.equal(buf0.rotateRight(2).reduce().toString(),
+  '[b, (a∧c), a, 0]',
+  'BUFFER rotateRight');
+assert.equal(buf0.rotateRight(0).reduce().toString(),
+  '[a, 0, b, (a∧c)]',
+  'BUFFER rotateRight zero');
+assert.equal(buf0.rotateRight(9).reduce().toString(),
+  '[(a∧c), a, 0, b]',
+  'BUFFER rotateRight beyond bounds');
+//[a, 0, b, (a∧c)]
+//assert.equal(buf0.rotateRight(-1).reduce().toString(),
+//  '[0, b, (a∧c), a]',
+//  'BUFFER rotateRight negative');
 
 //m.rotateRight(n, 2)
 //m.rotateLeft(n, 2)

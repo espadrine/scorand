@@ -31,7 +31,11 @@ export class Buffer extends Array {
     return this.slice(zeroes).concat(
       Buffer.from([...new Array(zeroes)].map(e => new ConstantBit(0))));
   }
-
+  rotateRight(count) {
+    //if (count < 0) { return this.rotateLeft(-count); }
+    const offset = this.length - (count % this.length);
+    return this.slice(offset).concat(this.slice(0, offset));
+  }
 
   reduce() {
     for (let i = this.length - 1; i >= 0; i--) {
