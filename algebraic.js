@@ -32,8 +32,13 @@ export class Buffer extends Array {
       Buffer.from([...new Array(zeroes)].map(e => new ConstantBit(0))));
   }
   rotateRight(count) {
-    //if (count < 0) { return this.rotateLeft(-count); }
+    if (count < 0) { return this.rotateLeft(-count); }
     const offset = this.length - (count % this.length);
+    return this.slice(offset).concat(this.slice(0, offset));
+  }
+  rotateLeft(count) {
+    if (count < 0) { return this.rotateRight(-count); }
+    const offset = count % this.length;
     return this.slice(offset).concat(this.slice(0, offset));
   }
 
