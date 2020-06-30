@@ -1,5 +1,6 @@
 import {strict as assert} from 'assert';
-import {Buffer, ConstantBit, VarBit, NotBit, XorBit, AndBit, OrBit}
+import {ConstantBit, VarBit, NotBit, XorBit, AndBit, OrBit,
+        Buffer, UInt8, UInt16}
 from '../algebraic.js';
 
 // ConstantBit
@@ -206,8 +207,14 @@ assert.equal(buf0.rotateLeft(-1).reduce().toString(),
   '[(a∧c), a, 0, b]',
   'BUFFER rotateLeft negative');
 
-//m = new UInt32(4294967295)
-//n = new UInt32()
+let i0 = new UInt8(170), i1 = new UInt16(65535);
+assert(i1.size(), 16,
+  'UINT size');
+assert(i1.every(b => b.type === ConstantBit && b.value === 1),
+  'UINT bits');
+assert.equal(i0.toString(), '[1, 0, 1, 0, 1, 0, 1, 0]',
+  'UINT display');
+
 //n.set(3);
 //m.plus(n)
 //m.negative()

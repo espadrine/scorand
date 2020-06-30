@@ -62,6 +62,61 @@ Buffer.from = function from(bits) {
   return new Buffer(bits.length, bits);
 };
 
+// Integers.
+
+export class UInt extends Buffer {
+}
+
+UInt.bitsFromInteger = function bitsFromInteger(int) {
+  int = BigInt(int);
+  const bits = [];
+  for (; int > 0n; int >>= 1n) {
+    bits.push(new ConstantBit(+!!(int & 1n)));
+  }
+  return bits.reverse();
+}
+
+export class UInt8 extends Buffer {
+  constructor(int) {
+    super(8, UInt.bitsFromInteger(int));
+  }
+}
+
+export class UInt16 extends Buffer {
+  constructor(int) {
+    super(16, UInt.bitsFromInteger(int));
+  }
+}
+
+export class UInt32 extends Buffer {
+  constructor(int) {
+    super(32, UInt.bitsFromInteger(int));
+  }
+}
+
+export class UInt64 extends Buffer {
+  constructor(int) {
+    super(64, UInt.bitsFromInteger(int));
+  }
+}
+
+// Sometimes available through compilers.
+export class UInt128 extends Buffer {
+  constructor(int) {
+    super(128, UInt.bitsFromInteger(int));
+  }
+}
+
+// There are no 256-bit CPUs yet,
+// but this could be used to implement SIMD operations.
+export class UInt256 extends Buffer {
+  constructor(int) {
+    super(256, UInt.bitsFromInteger(int));
+  }
+}
+
+// Booleans.
+
 // Information sources:
 // Boolean Algebra: https://en.wikipedia.org/wiki/Boolean_algebra
 // Logic gates: https://en.wikipedia.org/wiki/Logic_gate
