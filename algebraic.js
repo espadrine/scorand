@@ -65,6 +65,14 @@ Buffer.from = function from(bits) {
 // Integers.
 
 export class UInt extends Buffer {
+  // Change the bits of the UInt to lay out another integer.
+  set(int) {
+    const bits = UInt.bitsFromInteger(int);
+    // We must maintain the current bit size.
+    this.splice(this.length - bits.length, bits.length, ...bits);
+    this.fill(new ConstantBit(0), 0, this.length - bits.length);
+    return this;
+  }
 }
 
 UInt.bitsFromInteger = function bitsFromInteger(int) {
@@ -76,32 +84,36 @@ UInt.bitsFromInteger = function bitsFromInteger(int) {
   return bits.reverse();
 }
 
-export class UInt8 extends Buffer {
+// Byte.
+export class UInt8 extends UInt {
   constructor(int) {
     super(8, UInt.bitsFromInteger(int));
   }
 }
 
-export class UInt16 extends Buffer {
+// Word.
+export class UInt16 extends UInt {
   constructor(int) {
     super(16, UInt.bitsFromInteger(int));
   }
 }
 
-export class UInt32 extends Buffer {
+// Doubleword.
+export class UInt32 extends UInt {
   constructor(int) {
     super(32, UInt.bitsFromInteger(int));
   }
 }
 
-export class UInt64 extends Buffer {
+// Quadword.
+export class UInt64 extends UInt {
   constructor(int) {
     super(64, UInt.bitsFromInteger(int));
   }
 }
 
 // Sometimes available through compilers.
-export class UInt128 extends Buffer {
+export class UInt128 extends UInt {
   constructor(int) {
     super(128, UInt.bitsFromInteger(int));
   }
@@ -109,7 +121,7 @@ export class UInt128 extends Buffer {
 
 // There are no 256-bit CPUs yet,
 // but this could be used to implement SIMD operations.
-export class UInt256 extends Buffer {
+export class UInt256 extends UInt {
   constructor(int) {
     super(256, UInt.bitsFromInteger(int));
   }

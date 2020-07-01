@@ -207,15 +207,16 @@ assert.equal(buf0.rotateLeft(-1).reduce().toString(),
   '[(a∧c), a, 0, b]',
   'BUFFER rotateLeft negative');
 
-let i0 = new UInt8(170), i1 = new UInt16(65535);
+let i0 = new UInt8(174), i1 = new UInt16(65535);
 assert(i1.size(), 16,
   'UINT size');
 assert(i1.every(b => b.type === ConstantBit && b.value === 1),
   'UINT bits');
-assert.equal(i0.toString(), '[1, 0, 1, 0, 1, 0, 1, 0]',
+assert.equal(i0.toString(), '[1, 0, 1, 0, 1, 1, 1, 0]',
   'UINT display');
+assert.equal(i0.set(3).toString(), '[0, 0, 0, 0, 0, 0, 1, 1]',
+  'UINT set');
 
-//n.set(3);
 //m.plus(n)
 //m.negative()
 //m.minus(n)
