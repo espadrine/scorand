@@ -1,6 +1,6 @@
 import {strict as assert} from 'assert';
 import {ConstantBit, VarBit, NotBit, XorBit, AndBit, OrBit,
-        Buffer, UInt8, UInt16}
+        Buffer, UInt, UIntWithOverflow, UInt8, UInt16}
 from '../algebraic.js';
 
 // ConstantBit
@@ -208,16 +208,42 @@ assert.equal(buf0.rotateLeft(-1).reduce().toString(),
   'BUFFER rotateLeft negative');
 
 let i0 = new UInt8(174), i1 = new UInt16(65535);
-assert(i1.size(), 16,
+assert.equal(UInt.ofSize(2).size(), 2,
+  'UINT ofSize');
+assert.equal(i1.size(), 16,
   'UINT size');
-assert(i1.every(b => b.type === ConstantBit && b.value === 1),
+assert(i1.bits.every(b => b.type === ConstantBit && b.value === 1),
   'UINT bits');
 assert.equal(i0.toString(), '[1, 0, 1, 0, 1, 1, 1, 0]',
   'UINT display');
-assert.equal(i0.set(3).toString(), '[0, 0, 0, 0, 0, 0, 1, 1]',
+assert.equal(new UInt(7).set(3).toString(), '[1, 1]',
   'UINT set');
+assert.equal(new UInt(2).set(5).toString(), '[1, 0, 1]',
+  'UINT set to a number too large');
+assert.equal(new UIntWithOverflow(1, 2).toString(), '[0, 1]',
+  'UINTWITHOVERFLOW initialized to a number too small');
+assert.equal(new UIntWithOverflow(5, 2).toString(), '[0, 1]',
+  'UINTWITHOVERFLOW initialized to a number too large');
+assert.equal(new UIntWithOverflow(3, 2).set(1).toString(), '[0, 1]',
+  'UINTWITHOVERFLOW set to a number too small');
+assert.equal(new UIntWithOverflow(3, 2).set(5).toString(), '[0, 1]',
+  'UINTWITHOVERFLOW set to a number too large');
+assert.equal(new UInt8(12).plus(i0).toString(),
+  '[1, 0, 1, 1, 1, 0, 1, 0]',
+  'UINTWITHOVERFLOW plus');
+assert.equal(i0.plus(i1).toString(),
+  '[1, 0, 1, 0, 1, 1, 0, 1]',
+  'UINTWITHOVERFLOW plus overflow with varying int sizes');
+assert.equal(i1.plus(i0).toString(),
+  '[0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 0, 1]',
+  'UINTWITHOVERFLOW plus overflow with varying int sizes');
+assert.equal(i0.plus(UInt.from([a, b])).toString(),
+  '[1, 0, 1, a, ¬a, ¬a, ¬a, b]',
+  'UINTWITHOVERFLOW plus with variables on one side');
+assert.equal(UInt.from([a, b]).plus(UInt.from([c])).toString(),
+  '[(a∧b∧c), ((b∧c)⊕a), (b⊕c)]',
+  'UINT plus with variables on both sides');
 
-//m.plus(n)
 //m.negative()
 //m.minus(n)
 //m.times(n)
@@ -225,3 +251,9 @@ assert.equal(i0.set(3).toString(), '[0, 0, 0, 0, 0, 0, 1, 1]',
 //m.modulo(n)
 //m.power(n)
 //m.probabilityOfBitAt(1)
+//UInt.ifThenElse(c, a, b)
+//m.equal(n)
+//m.greaterThan(n)
+//m.greaterThanOrEqual(n)
+//m.lessThan(n)
+//m.lessThanOrEqual(n)

@@ -1,130 +1,220 @@
-export class Buffer extends Array {
+export class Buffer {
   // size: in bits.
   constructor(size, bits = []) {
-    super(size);
+    this.bits = new Array(size);
     for (let i = 0; i < size; i++) {
-      this[i] = bits[i] || new VarBit();
+      this.bits[i] = bits[i] || new VarBit();
     }
   }
+  static from(bits) { return new Buffer(bits.length, bits); }
 
-  not() { return this.copy().map(b => new NotBit(b)); }
+  not() {
+    const r = this.copy();
+    r.bits = r.bits.map(b => new NotBit(b));
+    return r;
+  }
   bitwiseOp(buf0, op) {
+    buf0 = buf0.copy();
     const buf1 = this.copy();
+    const buf0len = buf0.bits.length, buf1len = buf1.bits.length;
     let longer, shorter;
-    if (buf0.length > buf1.length) { longer = buf0; shorter = buf1; }
-    else                           { longer = buf1; shorter = buf0; }
-    return longer.map((b, i) => (shorter[i] === undefined)? b:
-      new op([b, shorter[i]]));
+    if (buf0len > buf1len) { longer = buf0; shorter = buf1; }
+    else                   { longer = buf1; shorter = buf0; }
+    longer.bits = longer.bits.map((b, i) =>
+      (shorter.bitAt(i) === undefined)? b:
+      new op([b, shorter.bitAt(i)]));
+    return longer;
   }
   xor(buf) { return this.bitwiseOp(buf, XorBit); }
   or(buf) { return this.bitwiseOp(buf, OrBit); }
   and(buf) { return this.bitwiseOp(buf, AndBit); }
   shiftRight(count) {
     if (count < 0) { return this.shiftLeft(-count); }
-    const zeroes = Math.min(count, this.length);
-    return Buffer.from([...new Array(zeroes)].map(e => new ConstantBit(0)))
-      .concat(this.slice(0, this.length - zeroes));
+    const zeroes = Math.min(count, this.bits.length);
+    return this.constructor.from(
+      [...new Array(zeroes)].map(e => new ConstantBit(0))
+      .concat(this.bits.slice(0, this.bits.length - zeroes)));
   }
   shiftLeft(count) {
     if (count < 0) { return this.shiftRight(-count); }
-    const zeroes = Math.min(count, this.length);
-    return this.slice(zeroes).concat(
-      Buffer.from([...new Array(zeroes)].map(e => new ConstantBit(0))));
+    const zeroes = Math.min(count, this.bits.length);
+    return this.constructor.from(
+      this.bits.slice(zeroes).concat(
+      [...new Array(zeroes)].map(e => new ConstantBit(0))));
   }
   rotateRight(count) {
     if (count < 0) { return this.rotateLeft(-count); }
-    const offset = this.length - (count % this.length);
-    return this.slice(offset).concat(this.slice(0, offset));
+    const offset = this.bits.length - (count % this.bits.length);
+    return this.constructor.from(
+      this.bits.slice(offset).concat(this.bits.slice(0, offset)));
   }
   rotateLeft(count) {
     if (count < 0) { return this.rotateRight(-count); }
-    const offset = count % this.length;
-    return this.slice(offset).concat(this.slice(0, offset));
+    const offset = count % this.bits.length;
+    return this.constructor.from(
+      this.bits.slice(offset).concat(this.bits.slice(0, offset)));
   }
 
   reduce() {
-    for (let i = this.length - 1; i >= 0; i--) {
-      this[i] = this[i].reduce();
+    for (let i = this.bits.length - 1; i >= 0; i--) {
+      this.setBitAt(i, this.bitAt(i).reduce());
     }
     return this;
   }
 
-  size() { return this.length; }
-  bitAt(pos) { return this[pos]; }
-  setBitAt(pos, bit) { return this[pos] = bit; }
-  copy() { return this.slice(); }
+  size() { return this.bits.length; }
+  bitAt(pos) { return this.bits[pos]; }
+  setBitAt(pos, bit) { return this.bits[pos] = bit; }
+  copy() { return new this.constructor(this.bits.length, this.bits); }
+  slice(a, b) {
+    if (a === undefined) { a = 0; }
+    if (b === undefined) {
+      if (a < 0) { a += this.bits.length; }
+      b = this.bits.length;
+    }
+    return new this.constructor(b - a, this.bits.slice(a, b));
+  }
   toString() {
-    return '[' + this.join(', ') + ']';
+    return '[' + this.bits.join(', ') + ']';
   }
 }
-
-Buffer.from = function from(bits) {
-  return new Buffer(bits.length, bits);
-};
 
 // Integers.
 
 export class UInt extends Buffer {
+  constructor(int) { super(0); this.set(int); }
+  static from(bits) {
+    const r = new UInt(0);
+    r.bits = bits;
+    return r;
+  }
+
+  // UInt with bit variables of a size in bits.
+  static ofSize(size) {
+    const int = new UInt(0);
+    int.bits = new Array(size);
+    for (let i = 0; i < size; i++) {
+      int.bits[i] = new VarBit();
+    }
+    return int;
+  }
+
   // Change the bits of the UInt to lay out another integer.
   set(int) {
-    const bits = UInt.bitsFromInteger(int);
-    // We must maintain the current bit size.
-    this.splice(this.length - bits.length, bits.length, ...bits);
-    this.fill(new ConstantBit(0), 0, this.length - bits.length);
+    this.bits = UInt.bitsFromInteger(int);
     return this;
+  }
+
+  // Addition. We grow the buffer to fit.
+  plus(int) {
+    const bits = [];
+    let carry = new ConstantBit(0);
+    const longest = this.bits.length > int.bits.length? this: int;
+    const shortest = this.bits.length > int.bits.length? int: this;
+    let a, b;
+    for (let i = 0; i <= longest.bits.length; i++) {
+      a = longest.bitAt(longest.bits.length - i - 1) || new ConstantBit(0);
+      b = shortest.bitAt(shortest.bits.length - i - 1) || new ConstantBit(0);
+      bits.push(new XorBit([a, b, carry]).reduce());
+      carry = UInt.carry(a, b, carry);
+    }
+    return UInt.from(bits.reverse());
+  }
+
+  // Take an integer (Number), return the list of Bits
+  // encoding it, most significant bit first.
+  // eg. 2 → [1, 0].
+  static bitsFromInteger(int) {
+    int = BigInt(int);
+    const bits = [];
+    for (; int > 0n; int >>= 1n) {
+      bits.push(new ConstantBit(+!!(int & 1n)));
+    }
+    return bits.reverse();
+  }
+
+  // Take two bits with same significance in both numbers,
+  // compute the carry for the the bit with more significance.
+  // ie. xxxayy + xxxbyy, with yy yielding a carry of prevCarry,
+  // a being prevA, and b being prevB.
+  static carry(prevA, prevB, prevCarry) {
+    return new OrBit([new AndBit([prevA, prevB]),
+      new AndBit([new XorBit([prevA, prevB]), prevCarry])]).reduce();
   }
 }
 
-UInt.bitsFromInteger = function bitsFromInteger(int) {
-  int = BigInt(int);
-  const bits = [];
-  for (; int > 0n; int >>= 1n) {
-    bits.push(new ConstantBit(+!!(int & 1n)));
+export class UIntWithOverflow extends UInt {
+  constructor(int, size) {
+    super(int);
+    this.overflowSize = size;
+    this.truncateMostSignificant();
   }
-  return bits.reverse();
+  static from(bits) {
+    const r = new UIntWithOverflow(0, bits.length);
+    r.bits = bits;
+    return r;
+  }
+
+  set(int) {
+    return super.set(int).truncateMostSignificant();
+  }
+  plus(int) {
+    const r = this.copy();
+    r.bits = super.plus(int).bits;
+    return r.truncateMostSignificant();
+  }
+
+  // If the int does not fit the UInt’s bit length,
+  // we trunate the most significant bits.
+  truncateMostSignificant() {
+    if (this.overflowSize > this.bits.length) {
+      // Fill zeroes at the start to fit size.
+      const zeroes = this.overflowSize - this.bits.length;
+      this.bits = [...new Array(zeroes)].map(e => new ConstantBit(0))
+        .concat(this.bits);
+    } else {
+      // Remove most significant bits that go past the size.
+      this.bits = this.bits.slice(this.bits.length - this.overflowSize);
+    }
+    return this;
+  }
+
+  copy() {
+    const r = super.copy();
+    r.overflowSize = this.overflowSize;
+    return r;
+  }
 }
 
 // Byte.
-export class UInt8 extends UInt {
-  constructor(int) {
-    super(8, UInt.bitsFromInteger(int));
-  }
+export class UInt8 extends UIntWithOverflow {
+  constructor(int) { super(int, 8); }
 }
 
 // Word.
-export class UInt16 extends UInt {
-  constructor(int) {
-    super(16, UInt.bitsFromInteger(int));
-  }
+export class UInt16 extends UIntWithOverflow {
+  constructor(int) { super(int, 16); }
 }
 
 // Doubleword.
-export class UInt32 extends UInt {
-  constructor(int) {
-    super(32, UInt.bitsFromInteger(int));
-  }
+export class UInt32 extends UIntWithOverflow {
+  constructor(int) { super(int, 32); }
 }
 
 // Quadword.
-export class UInt64 extends UInt {
-  constructor(int) {
-    super(64, UInt.bitsFromInteger(int));
-  }
+export class UInt64 extends UIntWithOverflow {
+  constructor(int) { super(int, 64); }
 }
 
 // Sometimes available through compilers.
-export class UInt128 extends UInt {
-  constructor(int) {
-    super(128, UInt.bitsFromInteger(int));
-  }
+export class UInt128 extends UIntWithOverflow {
+  constructor(int) { super(int, 128); }
 }
 
 // There are no 256-bit CPUs yet,
 // but this could be used to implement SIMD operations.
-export class UInt256 extends UInt {
-  constructor(int) {
-    super(256, UInt.bitsFromInteger(int));
-  }
+export class UInt256 extends UIntWithOverflow {
+  constructor(int) { super(int, 256); }
 }
 
 // Booleans.
