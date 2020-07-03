@@ -189,32 +189,68 @@ export class UIntWithOverflow extends UInt {
 // Byte.
 export class UInt8 extends UIntWithOverflow {
   constructor(int) { super(int, 8); }
+  static from(bits) {
+    const r = new UInt8(0, bits.length);
+    r.bits = bits;
+    r.truncateMostSignificant();
+    return r;
+  }
 }
 
 // Word.
 export class UInt16 extends UIntWithOverflow {
   constructor(int) { super(int, 16); }
+  static from(bits) {
+    const r = new UInt16(0, bits.length);
+    r.bits = bits;
+    r.truncateMostSignificant();
+    return r;
+  }
 }
 
 // Doubleword.
 export class UInt32 extends UIntWithOverflow {
   constructor(int) { super(int, 32); }
+  static from(bits) {
+    const r = new UInt32(0, bits.length);
+    r.bits = bits;
+    r.truncateMostSignificant();
+    return r;
+  }
 }
 
 // Quadword.
 export class UInt64 extends UIntWithOverflow {
   constructor(int) { super(int, 64); }
+  static from(bits) {
+    const r = new UInt64(0, bits.length);
+    r.bits = bits;
+    r.truncateMostSignificant();
+    return r;
+  }
 }
 
 // Sometimes available through compilers.
 export class UInt128 extends UIntWithOverflow {
   constructor(int) { super(int, 128); }
+  static from(bits) {
+    const r = new UInt128(0, bits.length);
+    r.bits = bits;
+    r.truncateMostSignificant();
+    return r;
+  }
 }
 
 // There are no 256-bit CPUs yet,
 // but this could be used to implement SIMD operations.
 export class UInt256 extends UIntWithOverflow {
   constructor(int) { super(int, 256); }
+  static from(bits) {
+    const r = new UInt256(0, bits.length);
+    r.bits = bits;
+    r.truncateMostSignificant();
+    return r;
+  }
 }
 
 // Booleans.

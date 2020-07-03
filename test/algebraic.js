@@ -228,6 +228,8 @@ assert.equal(new UIntWithOverflow(3, 2).set(1).toString(), '[0, 1]',
   'UINTWITHOVERFLOW set to a number too small');
 assert.equal(new UIntWithOverflow(3, 2).set(5).toString(), '[0, 1]',
   'UINTWITHOVERFLOW set to a number too large');
+assert.equal(UInt8.from([a]).toString(), '[0, 0, 0, 0, 0, 0, 0, a]',
+  'UINTWITHOVERFLOW from');
 assert.equal(new UInt8(12).plus(i0).toString(),
   '[1, 0, 1, 1, 1, 0, 1, 0]',
   'UINTWITHOVERFLOW plus');
