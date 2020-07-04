@@ -245,8 +245,13 @@ assert.equal(i0.plus(UInt.from([a, b])).toString(),
 assert.equal(UInt.from([a, b]).plus(UInt.from([c])).toString(),
   '[(a∧b∧c), ((b∧c)⊕a), (b⊕c)]',
   'UINT plus with variables on both sides');
+assert.equal(i0.negative().reduce().toString(),
+  '[0, 1, 0, 1, 0, 0, 1, 0]',
+  'UINTWITHOVERFLOW negative');
+assert.equal(UIntWithOverflow.from([new NotBit(a), b])
+  .negative().reduce().toString(), '[¬(a⊕b), b]',
+  'UINTWITHOVERFLOW negative with variables');
 
-//m.negative()
 //m.minus(n)
 //m.times(n)
 //m.dividedBy(n)

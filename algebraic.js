@@ -141,6 +141,12 @@ export class UInt extends Buffer {
     return new OrBit([new AndBit([prevA, prevB]),
       new AndBit([new XorBit([prevA, prevB]), prevCarry])]).reduce();
   }
+
+  copy() {
+    const r = new this.constructor(0);
+    r.bits = this.bits.map(b => b.copy());
+    return r;
+  }
 }
 
 export class UIntWithOverflow extends UInt {
@@ -158,10 +164,16 @@ export class UIntWithOverflow extends UInt {
   set(int) {
     return super.set(int).truncateMostSignificant();
   }
+  // Return this+int.
   plus(int) {
     const r = this.copy();
     r.bits = super.plus(int).bits;
     return r.truncateMostSignificant();
+  }
+  // Return -this, underflowing.
+  negative(){
+    return this.not().plus(new this.constructor(1))
+      .truncateMostSignificant();
   }
 
   // If the int does not fit the UInt’s bit length,
