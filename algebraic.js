@@ -115,7 +115,7 @@ export class UInt extends Buffer {
     for (let i = 0; i <= longest.bits.length; i++) {
       a = longest.bitAt(longest.bits.length - i - 1) || new ConstantBit(0);
       b = shortest.bitAt(shortest.bits.length - i - 1) || new ConstantBit(0);
-      bits.push(new XorBit([a, b, carry]).reduce());
+      bits.push(new XorBit([a, b, carry]));
       carry = UInt.carry(a, b, carry);
     }
     return UInt.from(bits.reverse());
@@ -139,7 +139,7 @@ export class UInt extends Buffer {
   // a being prevA, and b being prevB.
   static carry(prevA, prevB, prevCarry) {
     return new OrBit([new AndBit([prevA, prevB]),
-      new AndBit([new XorBit([prevA, prevB]), prevCarry])]).reduce();
+      new AndBit([new XorBit([prevA, prevB]), prevCarry])]);
   }
 
   copy() {
@@ -349,6 +349,7 @@ class AssocOpBit extends Bit {
     let b = super.reduce();
     // Associativity.
     b.operands = b.operands.reduce((opds, o) => {
+      o = o.reduce();
       if (o.type === this.type) {
         opds = opds.concat(o.operands);
       } else { opds.push(o); }
