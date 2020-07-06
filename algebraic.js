@@ -361,15 +361,10 @@ class AssocOpBit extends Bit {
 
 class AssocCommOpBit extends AssocOpBit {
   constructor(operands) { super(operands); }
-  reduce() {
-    let b = super.reduce();
-    b.operands = b.operands.map(o => o.reduce());
-    return b;
-  }
+  reduce() { return super.reduce().sort(); }
   sort() {
     // Order the operands.
-    this.operands = this.operands.sort((a, b) =>
-      a.toString() > b.toString()? 1: -1);
+    this.operands.sort((a, b) => a.toString() > b.toString()? 1: -1);
     return this;
   }
 }
