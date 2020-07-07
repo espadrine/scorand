@@ -230,6 +230,7 @@ assert.equal(new UIntWithOverflow(3, 2).set(5).toString(), '[0, 1]',
   'UINTWITHOVERFLOW set to a number too large');
 assert.equal(UInt8.from([a]).toString(), '[0, 0, 0, 0, 0, 0, 0, a]',
   'UINTWITHOVERFLOW from');
+
 assert.equal(new UInt8(12).plus(i0).reduce().toString(),
   '[1, 0, 1, 1, 1, 0, 1, 0]',
   'UINTWITHOVERFLOW plus');
@@ -245,14 +246,24 @@ assert.equal(i0.plus(UInt.from([a, b])).reduce().toString(),
 assert.equal(UInt.from([a, b]).plus(UInt.from([c])).reduce().toString(),
   '[(a∧b∧c), ((b∧c)⊕a), (b⊕c)]',
   'UINT plus with variables on both sides');
+
 assert.equal(i0.negative().reduce().toString(),
   '[0, 1, 0, 1, 0, 0, 1, 0]',
   'UINTWITHOVERFLOW negative');
 assert.equal(UIntWithOverflow.from([new NotBit(a), b])
   .negative().reduce().toString(), '[¬(a⊕b), b]',
   'UINTWITHOVERFLOW negative with variables');
+assert.equal(i1.minus(i0).reduce().toString(),
+  '[1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 1]',
+  'UINTWITHOVERFLOW minus with smaller operand');
+assert.equal(i0.minus(i1).reduce().toString(),
+  '[1, 0, 1, 0, 1, 1, 1, 1]',
+  'UINTWITHOVERFLOW minus with bigger operand');
+assert.equal(UIntWithOverflow.from([new NotBit(a), b])
+  .minus(UIntWithOverflow.from([a, new NotBit(b)]))
+  .reduce().toString(), '[b, 1]',
+  'UINTWITHOVERFLOW minus with variables');
 
-//m.minus(n)
 //m.times(n)
 //m.dividedBy(n)
 //m.modulo(n)

@@ -171,9 +171,10 @@ export class UIntWithOverflow extends UInt {
     return r.truncateMostSignificant();
   }
   // Return -this, underflowing.
-  negative(){
-    return this.not().plus(new this.constructor(1))
-      .truncateMostSignificant();
+  negative() { return this.not().plus(new this.constructor(1)); }
+  // Return this-int. int must be a UIntWithOverflow.
+  minus(int) {
+    return this.plus(this.constructor.from(int.bits).negative());
   }
 
   // If the int does not fit the UInt’s bit length,
@@ -345,9 +346,9 @@ class AssocOpBit extends Bit {
     this.operands = operands.slice();
   }
   copy() { return new this.type(this.operands); }
-  reduce() {
-    let b = super.reduce();
-    // Associativity.
+  // Associativity: A • (B • C) = (A • B) • C
+  reduceAssociative() {
+    let b = this.copy();
     b.operands = b.operands.reduce((opds, o) => {
       o = o.reduce();
       if (o.type === this.type) {
@@ -356,6 +357,9 @@ class AssocOpBit extends Bit {
       return opds;
     }, []);
     return b;
+  }
+  reduce() {
+    return super.reduce().reduceAssociative();
   }
 }
 
@@ -403,7 +407,7 @@ export class XorBit extends AssocCommOpBit {
     return b;
   }
 
-  // Zero identity; One conversion.
+  // Zero identity; One negation.
   reduceConst() {
     let b = this.copy();
     // Ones annihilate pairwise. The last one is equivalent to a NOT.
@@ -431,7 +435,9 @@ export class XorBit extends AssocCommOpBit {
     let negCount = b.operands.reduce((count, o) =>
       o.type === NotBit? count + 1: count, 0);
     b.operands = b.operands.map(o => o.type === NotBit? o.operand: o);
-    b = b.reduceDup().sort().reduceConst();
+    // The Not factorization can yield associable terms.
+    // So we perform associative reduction again.
+    b = b.reduceAssociative().reduceDup().sort().reduceConst();
     // The NOTs cancel pairwise; if there is one remaining, it becomes this bit.
     if (negCount % 2 === 1) { b = new NotBit(b).reduce(); }
     return b;
