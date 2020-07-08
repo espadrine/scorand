@@ -358,9 +358,7 @@ class AssocOpBit extends Bit {
     }, []);
     return b;
   }
-  reduce() {
-    return super.reduce().reduceAssociative();
-  }
+  reduce() { return super.reduce().reduceAssociative(); }
 }
 
 class AssocCommOpBit extends AssocOpBit {

@@ -44,6 +44,10 @@ assert.equal(new XorBit([a, b]).toString(), '(a⊕b)',
 assert.equal(new XorBit([a, new XorBit([b, c])]).reduce().toString(),
   '(a⊕b⊕c)',
   'XOR associativity');
+assert.equal(new XorBit([new NotBit(new XorBit([a, b])),
+  new NotBit(c)]).reduce().toString(),
+  '(a⊕b⊕c)',
+  'XOR associativity with not');
 assert.equal(new XorBit([a, a]).reduce().toString(), '0',
   'XOR positive annihilation');
 assert.equal(new XorBit([a, new NotBit(a)]).reduce().toString(), '1',
@@ -95,6 +99,10 @@ assert.equal(new OrBit([a, new AndBit([b, a])]).reduce().toString(), 'a',
 assert.equal(new OrBit([new AndBit([a, b]), new AndBit([a, c])])
   .reduce().toString(), '(a∧(b∨c))',
   'OR distributivity');
+assert.equal(new OrBit([b,
+  new AndBit([new OrBit([a, c]), new OrBit([a, d])])]).reduce().toString(),
+  '((c∧d)∨a∨b)',
+  'OR associativity with distributivity');
 assert.equal(new OrBit([zero]).reduce().toString(), '0',
   'OR zero');
 assert.equal(new OrBit([one]).reduce().toString(), '1',
@@ -123,6 +131,10 @@ assert.equal(new AndBit([a, new OrBit([b, a])]).reduce().toString(), 'a',
 assert.equal(new AndBit([new OrBit([a, b]), new OrBit([a, c])])
   .reduce().toString(), '(a∨(b∧c))',
   'AND distributivity');
+assert.equal(new AndBit([b,
+  new OrBit([new AndBit([a, c]), new AndBit([a, d])])]).reduce().toString(),
+  '((c∨d)∧a∧b)',
+  'AND associativity with distributivity');
 assert.equal(new AndBit([zero]).reduce().toString(), '0',
   'AND zero');
 assert.equal(new AndBit([one]).reduce().toString(), '1',
