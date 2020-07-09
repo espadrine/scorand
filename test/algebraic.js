@@ -37,6 +37,8 @@ assert.equal(new NotBit(zero).reduce().toString(), '1',
   'NOT zero');
 assert.equal(new NotBit(one).reduce().toString(), '0',
   'NOT one');
+assert.equal(new NotBit(new AndBit([a, b])).reduce().toString(), '(¬a∨¬b)',
+  'NOT De Morgan 2');
 
 // XorBit
 assert.equal(new XorBit([a, b]).toString(), '(a⊕b)',
@@ -84,6 +86,10 @@ assert.equal(new OrBit([a, b]).toString(), '(a∨b)',
 assert.equal(new OrBit([a, new OrBit([b, c])]).reduce().toString(),
   '(a∨b∨c)',
   'OR associativity');
+assert.equal(new OrBit([new NotBit(a),
+  new NotBit(new AndBit([a, b]))]).reduce().toString(),
+  '(¬a∨¬b)',
+  'OR associativity with not');
 assert.equal(new OrBit([a, one]).reduce().toString(), '1',
   'OR annihilator');
 assert.equal(new OrBit([a, b, new NotBit(a)]).reduce().toString(), '1',
@@ -159,7 +165,7 @@ assert.equal(buf0.bitAt(1).toString(), '1',
 buf0.setBitAt(1, zero);
 assert.equal(buf0.slice(1, 3).toString(), '[0, b]',
   'BUFFER slice');
-assert.equal(buf0.not().reduce().toString(), '[¬a, 1, ¬b, ¬(a∧c)]',
+assert.equal(buf0.not().reduce().toString(), '[¬a, 1, ¬b, (¬a∨¬c)]',
   'BUFFER not');
 assert.equal(buf0.xor(buf1).reduce().toString(),
   '[1, c, ¬b, ((a∧b)⊕(a∧c)), c]',
