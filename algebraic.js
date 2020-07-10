@@ -319,6 +319,17 @@ export class NotBit extends Bit {
   }
   copy() { return new this.type(this.operand); }
 
+
+  // De Morgan 1: ¬(A ∨ B) = ¬A ∧ ¬B
+  reduceDeMorgan1() {
+    const b = this.copy();
+    if (b.operand.type === OrBit) {
+      return new AndBit(b.operand.operands.map(op =>
+        new NotBit(op).reduce()));
+    }
+    return b;
+  }
+
   // De Morgan 2: ¬(A ∧ B) = ¬A ∨ ¬B
   reduceDeMorgan2() {
     const b = this.copy();
@@ -340,6 +351,8 @@ export class NotBit extends Bit {
     // Double negation: ¬¬A = A.
     if (b.operand.type === NotBit) { return b.operand.operand; }
     // De Morgan.
+    b = b.reduceDeMorgan1();
+    if (b.type !== NotBit) { return b; }
     b = b.reduceDeMorgan2();
     return b;
   }

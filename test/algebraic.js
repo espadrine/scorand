@@ -37,6 +37,8 @@ assert.equal(new NotBit(zero).reduce().toString(), '1',
   'NOT zero');
 assert.equal(new NotBit(one).reduce().toString(), '0',
   'NOT one');
+assert.equal(new NotBit(new OrBit([a, b])).reduce().toString(), '(¬a∧¬b)',
+  'NOT De Morgan 1');
 assert.equal(new NotBit(new AndBit([a, b])).reduce().toString(), '(¬a∨¬b)',
   'NOT De Morgan 2');
 
@@ -122,6 +124,10 @@ assert.equal(new AndBit([a, b]).toString(), '(a∧b)',
 assert.equal(new AndBit([a, new AndBit([b, c])]).reduce().toString(),
   '(a∧b∧c)',
   'AND associativity');
+assert.equal(new AndBit([new NotBit(a),
+  new NotBit(new OrBit([a, b]))]).reduce().toString(),
+  '(¬a∧¬b)',
+  'AND associativity with not');
 assert.equal(new AndBit([a, zero]).reduce().toString(), '0',
   'AND annihilator');
 assert.equal(new AndBit([a, b, new NotBit(a)]).reduce().toString(), '0',
