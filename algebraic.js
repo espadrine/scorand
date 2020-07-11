@@ -121,6 +121,20 @@ export class UInt extends Buffer {
     return UInt.from(bits.reverse());
   }
 
+  // Multiplication. We grow the buffer to fit.
+  //times(int) {
+  //  // TODO
+  //}
+
+  // Multiplication by 2^n.
+  // This is similar to a Buffer shiftLeft(), but unbounded.
+  times2exp(n) {
+    if (n < 0) { return this.dividedBy2exp(-n); }
+    const r = this.copy();
+    r.bits = r.bits.concat([...new Array(n)].map(e => new ConstantBit(0)));
+    return r;
+  }
+
   // Take an integer (Number), return the list of Bits
   // encoding it, most significant bit first.
   // eg. 2 → [1, 0].
@@ -318,7 +332,6 @@ export class NotBit extends Bit {
     this.operand = expr;
   }
   copy() { return new this.type(this.operand); }
-
 
   // De Morgan 1: ¬(A ∨ B) = ¬A ∧ ¬B
   reduceDeMorgan1() {

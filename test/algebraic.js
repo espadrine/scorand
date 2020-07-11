@@ -288,7 +288,16 @@ assert.equal(UIntWithOverflow.from([new NotBit(a), b])
   .reduce().toString(), '[b, 1]',
   'UINTWITHOVERFLOW minus with variables');
 
-//m.times(n)
+assert.equal(i0.times2exp(2).reduce().toString(),
+  '[1, 0, 1, 0, 1, 1, 1, 0, 0, 0]',
+  'UINT times2exp');
+assert.equal(i0.times2exp(0).reduce().toString(),
+  '[1, 0, 1, 0, 1, 1, 1, 0]',
+  'UINT times2exp 0');
+//assert.equal(new UInt(11).times(new UInt(14)).reduce().toString(),
+//  '[1, 0, 0, 1, 1, 0, 1, 0]',
+//  'UINT times');
+
 //m.dividedBy(n)
 //m.modulo(n)
 //m.power(n)
