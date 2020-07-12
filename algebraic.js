@@ -122,9 +122,22 @@ export class UInt extends Buffer {
   }
 
   // Multiplication. We grow the buffer to fit.
-  //times(int) {
-  //  // TODO
-  //}
+  times(int) {
+    // Implementation: multiplicative distribution.
+    //        a   b   c  ← this
+    //     ×      d   e  ← int
+    //     -------------
+    //       a∧e b∧e c∧e
+    // + a∧d b∧d c∧d
+    let acc = new this.constructor(0);
+    for (let i = 0; i < int.bits.length; i++) {
+      const intBit = int.bits[i];
+      const partial = this.times2exp(int.bits.length - i - 1);
+      partial.bits = partial.bits.map(b => new AndBit([intBit, b]));
+      acc = acc.plus(partial);
+    }
+    return acc;
+  }
 
   // Multiplication by 2^n.
   // This is similar to a Buffer shiftLeft(), but unbounded.

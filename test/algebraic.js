@@ -294,9 +294,18 @@ assert.equal(i0.times2exp(2).reduce().toString(),
 assert.equal(i0.times2exp(0).reduce().toString(),
   '[1, 0, 1, 0, 1, 1, 1, 0]',
   'UINT times2exp 0');
-//assert.equal(new UInt(11).times(new UInt(14)).reduce().toString(),
-//  '[1, 0, 0, 1, 1, 0, 1, 0]',
-//  'UINT times');
+assert.equal(new UInt(11).times(new UInt(14)).reduce().toString(),
+  '[0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0]',
+  'UINT times');
+assert.equal(UInt.from([a, b]).times(UInt.from([c])).reduce().toString(),
+  '[0, (a∧c), (b∧c)]',
+  'UINT times smaller, with variables');
+assert.equal(UInt.from([a]).times(UInt.from([b, c])).reduce().toString(),
+  '[0, 0, (a∧b), (a∧c)]',
+  'UINT times bigger, with variables');
+assert.equal(UInt.from([a, b]).times(UInt.from([c, d])).reduce().toString(),
+  '[0, (a∧b∧c∧d), ((a∧b∧c∧d)⊕(a∧c)), ((a∧d)⊕(b∧c)), (b∧d)]',
+  'UINT times with variables');
 
 //m.dividedBy(n)
 //m.modulo(n)
