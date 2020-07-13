@@ -115,8 +115,8 @@ export class UInt extends Buffer {
     for (let i = 0; i <= longest.bits.length; i++) {
       a = longest.bitAt(longest.bits.length - i - 1) || new ConstantBit(0);
       b = shortest.bitAt(shortest.bits.length - i - 1) || new ConstantBit(0);
-      bits.push(new XorBit([a, b, carry]));
-      carry = UInt.carry(a, b, carry);
+      bits.push(new XorBit([a.copy(), b.copy(), carry]));
+      carry = UInt.carry(a.copy(), b.copy(), carry);
     }
     return UInt.from(bits.reverse());
   }
@@ -131,10 +131,13 @@ export class UInt extends Buffer {
     // + a∧d b∧d c∧d
     let acc = new this.constructor(0);
     for (let i = 0; i < int.bits.length; i++) {
-      const intBit = int.bits[i];
+      const intBit = int.bits[i].copy();
+      if (intBit.type === ConstantBit && intBit.value === 0) { continue; }
       const partial = this.times2exp(int.bits.length - i - 1);
-      partial.bits = partial.bits.map(b => new AndBit([intBit, b]));
+      partial.bits = partial.bits.map(b => new AndBit([intBit, b.copy()]));
       acc = acc.plus(partial);
+      // Tiny break in our no-automatic-reduce rule, to limit slowdown.
+      acc.reduce();
     }
     return acc;
   }
@@ -202,6 +205,13 @@ export class UIntWithOverflow extends UInt {
   // Return this-int. int must be a UIntWithOverflow.
   minus(int) {
     return this.plus(this.constructor.from(int.bits).negative());
+  }
+  // Return this*int.
+  times(int) {
+    // FIXME: we could optimize this through Kochanski multiplication.
+    const r = this.copy();
+    r.bits = super.times(int).bits;
+    return r.truncateMostSignificant();
   }
 
   // If the int does not fit the UInt’s bit length,

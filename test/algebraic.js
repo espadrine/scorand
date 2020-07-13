@@ -295,7 +295,7 @@ assert.equal(i0.times2exp(0).reduce().toString(),
   '[1, 0, 1, 0, 1, 1, 1, 0]',
   'UINT times2exp 0');
 assert.equal(new UInt(11).times(new UInt(14)).reduce().toString(),
-  '[0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0]',
+  '[0, 0, 1, 0, 0, 1, 1, 0, 1, 0]',
   'UINT times');
 assert.equal(UInt.from([a, b]).times(UInt.from([c])).reduce().toString(),
   '[0, (a∧c), (b∧c)]',
@@ -306,6 +306,9 @@ assert.equal(UInt.from([a]).times(UInt.from([b, c])).reduce().toString(),
 assert.equal(UInt.from([a, b]).times(UInt.from([c, d])).reduce().toString(),
   '[0, (a∧b∧c∧d), ((a∧b∧c∧d)⊕(a∧c)), ((a∧d)⊕(b∧c)), (b∧d)]',
   'UINT times with variables');
+assert.equal(i0.times(i1).reduce().toString(),
+  '[0, 1, 0, 1, 0, 0, 1, 0]',
+  'UINTWITHOVERFLOW times');
 
 //m.dividedBy(n)
 //m.modulo(n)
