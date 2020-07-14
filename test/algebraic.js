@@ -310,13 +310,17 @@ assert.equal(i0.times(i1).reduce().toString(),
   '[0, 1, 0, 1, 0, 0, 1, 0]',
   'UINTWITHOVERFLOW times');
 
-//m.dividedBy(n)
-//m.modulo(n)
-//m.power(n)
-//m.probabilityOfBitAt(1)
+assert.equal(i0.probabilityOfBitAt(0), 1,
+  'probabilityOfBitAt constant 1');
+assert.equal(i0.probabilityOfBitAt(1), 0,
+  'probabilityOfBitAt constant 0');
+
 //UInt.ifThenElse(c, a, b)
 //m.equal(n)
 //m.greaterThan(n)
 //m.greaterThanOrEqual(n)
 //m.lessThan(n)
 //m.lessThanOrEqual(n)
+//m.dividedBy(n)
+//m.modulo(n)
+//m.power(n)

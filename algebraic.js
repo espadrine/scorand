@@ -55,6 +55,11 @@ export class Buffer {
       this.bits.slice(offset).concat(this.bits.slice(0, offset)));
   }
 
+  // Number between 0 and 1 of likelihood that the bit is set.
+  probabilityOfBitAt(idx) {
+    return this.bits[idx].probability();
+  }
+
   reduce() {
     for (let i = this.bits.length - 1; i >= 0; i--) {
       this.setBitAt(i, this.bitAt(i).reduce());
@@ -313,6 +318,7 @@ class Bit {
   constructor() { this.type = this.constructor; }
   copy() { return new this.type(); }
   reduce() { return this.copy(); }
+  probability() { return this.probabilityGiven(new Map()); }
 }
 
 export class ConstantBit extends Bit {
@@ -322,6 +328,7 @@ export class ConstantBit extends Bit {
     this.set(bit);
   }
   set(bit) { this.value = (+bit)? 1: 0; return this; }
+  probabilityGiven(env) { return this.value; }
   copy() { return new this.type(this.value); }
   toString() { return String(this.value); }
 }
