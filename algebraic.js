@@ -339,6 +339,12 @@ export class VarBit extends Bit {
     this.id = VarBit.varId++;
     this.name = VarBit.nameFromId(this.id);
   }
+  probabilityGiven(env) {
+    if (env.has(this.name)) {
+      return env.get(this.name);
+    }
+    return 0.5;
+  }
   copy() {
     let b = new this.type();
     b.id = this.id;

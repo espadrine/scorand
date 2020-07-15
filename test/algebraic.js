@@ -314,6 +314,12 @@ assert.equal(i0.probabilityOfBitAt(0), 1,
   'probabilityOfBitAt constant 1');
 assert.equal(i0.probabilityOfBitAt(1), 0,
   'probabilityOfBitAt constant 0');
+assert.equal(Buffer.from([a, b]).probabilityOfBitAt(0), 0.5,
+  'probabilityOfBitAt with variable');
+assert.equal(a.probabilityGiven(new Map([['a', 1]])), 1,
+  'probabilityGiven with given variable');
+assert.equal(a.probabilityGiven(new Map([['b', 1]])), 0.5,
+  'probabilityGiven with variable');
 
 //UInt.ifThenElse(c, a, b)
 //m.equal(n)
