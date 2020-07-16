@@ -368,6 +368,7 @@ export class NotBit extends Bit {
     this.operand = expr;
   }
   copy() { return new this.type(this.operand); }
+  probabilityGiven(env) { return 1 - this.operand.probabilityGiven(env); }
 
   // De Morgan 1: ¬(A ∨ B) = ¬A ∧ ¬B
   reduceDeMorgan1() {

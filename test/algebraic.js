@@ -320,6 +320,12 @@ assert.equal(a.probabilityGiven(new Map([['a', 1]])), 1,
   'probabilityGiven with given variable');
 assert.equal(a.probabilityGiven(new Map([['b', 1]])), 0.5,
   'probabilityGiven with variable');
+assert.equal(new NotBit(a).probability(), 0.5,
+  'probability with NotBit variable');
+assert.equal(new NotBit(a).probabilityGiven(new Map([['a', 1]])), 0,
+  'probability with NotBit given variable');
+assert.equal(new NotBit(zero).probability(), 1,
+  'probability with NotBit given constant');
 
 //UInt.ifThenElse(c, a, b)
 //m.equal(n)
