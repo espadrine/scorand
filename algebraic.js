@@ -318,6 +318,16 @@ class Bit {
   constructor() { this.type = this.constructor; }
   copy() { return new this.type(); }
   reduce() { return this.copy(); }
+  // probability() returns a number between 0 and 1 giving
+  // the likelihood of the bit being set,
+  // assuming each variable is independent and randomly set.
+  //
+  // probabilityGiven(env) returns a number between 0 and 1 giving
+  // the likelihood of the bit being set,
+  // assuming as above, except for variables in env.
+  // Env is a Map from string variables to a probability of being set.
+  //
+  // FIXME: perhaps using variable IDs instead of string variables is faster.
   probability() { return this.probabilityGiven(new Map()); }
 }
 
@@ -329,6 +339,7 @@ export class ConstantBit extends Bit {
   }
   set(bit) { this.value = (+bit)? 1: 0; return this; }
   probabilityGiven(env) { return this.value; }
+  variables() { return new Set(); }
   copy() { return new this.type(this.value); }
   toString() { return String(this.value); }
 }
@@ -339,12 +350,15 @@ export class VarBit extends Bit {
     this.id = VarBit.varId++;
     this.name = VarBit.nameFromId(this.id);
   }
+
   probabilityGiven(env) {
     if (env.has(this.name)) {
       return env.get(this.name);
     }
     return 0.5;
   }
+  variables() { return new Set([this.name]); }
+
   copy() {
     let b = new this.type();
     b.id = this.id;
@@ -369,6 +383,7 @@ export class NotBit extends Bit {
   }
   copy() { return new this.type(this.operand); }
   probabilityGiven(env) { return 1 - this.operand.probabilityGiven(env); }
+  variables() { return this.operand.variables(); }
 
   // De Morgan 1: ¬(A ∨ B) = ¬A ∧ ¬B
   reduceDeMorgan1() {
@@ -421,6 +436,98 @@ class AssocOpBit extends Bit {
     // Since it is associative, we present all operands as a list.
     this.operands = operands.slice();
   }
+
+  probabilityGiven(env) {
+    if (this.operands.length === 0) { return 0; }
+    const a = this.operands[0];
+    if (this.operands.length === 1) { return a.probabilityGiven(env); }
+    // FIXME: we could avoid the recursivity and gain a bit of speed.
+    const b = this.copy();
+    b.operands = b.operands.slice(1);
+    const aVars = a.variables(), bVars = b.variables();
+    const codependentVars = [...intersection(aVars, bVars)];
+
+    // Given each possible configuration of codependent variables,
+    // we want the probability of a,
+    // and the probability of b.
+    // Those events are independent,
+    // since there are no codependent variables:
+    // those are all set to either 0 or 1, thus no longer variable.
+    // Therefore we can get an exact computation of Pr(a•b) from that.
+    //
+    // FIXME: when the number of configurations is too large,
+    // perform Monte-Carlo approximation.
+    // The exponential explosion is why SAT is NP-complete.
+    const codepSize = codependentVars.length;
+    const codepConfNum = 2 ** codepSize;
+    // We compute:
+    // Pr(A•B) = Pr(((A•B) ∧ codepConf1) ∨ ((A•B) ∧ codepConf2) ∨ …)
+    //         = Σᵢ Pr((A•B) ∧ codepConfᵢ)
+    //         = Σᵢ Pr((A•B) | codepConfᵢ) × Pr(codepConfᵢ)
+    let prob = 0;
+    const truthTable = this.truthTable();
+    // First, we loop through all configurations.
+    for (let i = 0; i < codepConfNum; i++) {
+      // eg: i = 5
+      const confBits = i.toString(2).padStart(codepSize, '0') // 0101
+        .split('').map(d => +d);  // [0, 1, 0, 1]
+      const conf = mapUnion(env,
+        new Map(codependentVars.map((v, i) => [v, confBits[i]])));
+      // Now, we compute Pr((A•B) | codepConfᵢ).
+      // Generally, given the truth table T for A•B, eg.:
+      //
+      //     i │ T[A] │ T[B] │ T[A⊕B]
+      //     ──┼──────┼──────┼───────
+      //     0 │   0  │   0  │    0
+      //     1 │   0  │   1  │    1
+      //     2 │   1  │   0  │    1
+      //     3 │   1  │   1  │    0
+      //
+      // Then we have, assuming A and B are independent:
+      // Pr(A•B) = Σᵢ T[A•B]ᵢ × Pr(A=T[A]ᵢ) × Pr(B=T[B]ᵢ).
+      // In our case, A and B are independent,
+      // since all their common variables are configured, thus constant.
+      const pa = a.probabilityGiven(conf);
+      const pb = b.probabilityGiven(conf);
+      prob +=
+          ((truthTable[0] === 1)? ((1-pa) * (1-pb)): 0)
+       +  ((truthTable[1] === 1)? ((1-pa) *    pb ): 0)
+       +  ((truthTable[2] === 1)? (   pa  * (1-pb)): 0)
+       +  ((truthTable[3] === 1)? (   pa  *    pb ): 0);
+    }
+    // Finally, Pr(codepConfᵢ) is just 1÷codepConfNum.
+    prob /= codepConfNum;
+    return prob;
+  }
+
+  // Return a Set of string variables.
+  // FIXME: we may gain efficiency by using variable IDs instead.
+  variables() {
+    return this.operands.reduce((acc, o) => union(acc, o.variables()),
+      new Set());
+  }
+
+  // The static truthTable is an array of the form [0, 1, 1, 0],
+  // where the first element is the result of appying 0•0,
+  // the second is 0•1, the third 1•0, and the last 1•1,
+  // where • is the associative operation.
+  truthTable() {
+    if (this.constructor.cachedTruthTable !== undefined) {
+      return this.constructor.cachedTruthTable;
+    };
+    const zero = new ConstantBit(0), one = new ConstantBit(1);
+    const table = [
+      new this.constructor([zero, zero]).reduce().value,
+      new this.constructor([zero,  one]).reduce().value,
+      new this.constructor([ one, zero]).reduce().value,
+      new this.constructor([ one,  one]).reduce().value,
+    ];
+    if (table.every(v => v !== undefined)) {
+      this.constructor.cachedTruthTable = table;
+      return table;
+    } else { return []; }
+  }
+
   copy() { return new this.type(this.operands); }
   // Associativity: A • (B • C) = (A • B) • C
   reduceAssociative() {
@@ -435,6 +542,27 @@ class AssocOpBit extends Bit {
     return b;
   }
   reduce() { return super.reduce().reduceAssociative(); }
+}
+
+// Return the union of two Sets (which is also a Set).
+// FIXME: gain a bit of speed by avoiding Array creation.
+function union(set1, set2) {
+  return new Set([...set1, ...set2]);
+}
+// Return the intersection of two Sets (which is also a Set).
+function intersection(set1, set2) {
+  const s = new Set();
+  for (let v of set1) {
+    if (set2.has(v)) {
+      s.add(v);
+    }
+  }
+  return s;
+}
+// Return the union of two Maps (which is also a Map).
+// FIXME: gain a bit of speed by avoiding Array creation.
+function mapUnion(map1, map2) {
+  return new Map([...map1, ...map2]);
 }
 
 class AssocCommOpBit extends AssocOpBit {

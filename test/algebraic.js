@@ -327,6 +327,9 @@ assert.equal(new NotBit(a).probabilityGiven(new Map([['a', 1]])), 0,
 assert.equal(new NotBit(zero).probability(), 1,
   'probability with NotBit given constant');
 
+assert.equal(new AndBit([a, new OrBit([a, b])]).probability(), 0.5,
+  'probability of dependent expressions');
+
 //UInt.ifThenElse(c, a, b)
 //m.equal(n)
 //m.greaterThan(n)
