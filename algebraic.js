@@ -469,6 +469,7 @@ class AssocOpBit extends Bit {
     // First, we loop through all configurations.
     for (let i = 0; i < codepConfNum; i++) {
       // eg: i = 5
+      // FIXME: we can get rid of string operations for performance.
       const confBits = i.toString(2).padStart(codepSize, '0') // 0101
         .split('').map(d => +d);  // [0, 1, 0, 1]
       const conf = mapUnion(env,
@@ -496,6 +497,7 @@ class AssocOpBit extends Bit {
        +  ((truthTable[3] === 1)? (   pa  *    pb ): 0);
     }
     // Finally, Pr(codepConfᵢ) is just 1÷codepConfNum.
+    // FIXME: improve precision with BigInt for when codepConfNum is too big.
     prob /= codepConfNum;
     return prob;
   }

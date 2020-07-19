@@ -327,6 +327,22 @@ assert.equal(new NotBit(a).probabilityGiven(new Map([['a', 1]])), 0,
 assert.equal(new NotBit(zero).probability(), 1,
   'probability with NotBit given constant');
 
+assert.equal(new AndBit([zero, one]).probability(), 0,
+  'probability of AND constants');
+assert.equal(new AndBit([one, one]).probability(), 1,
+  'probability of AND constants');
+assert.equal(new OrBit([zero, zero]).probability(), 0,
+  'probability of OR constants');
+assert.equal(new OrBit([zero, one]).probability(), 1,
+  'probability of OR constants');
+assert.equal(new AndBit([a, zero]).probability(), 0,
+  'probability of AND with variable and constant');
+assert.equal(new AndBit([a, one]).probability(), 0.5,
+  'probability of AND with variable and constant');
+assert.equal(new AndBit([a, b]).probability(), 0.25,
+  'probability of independent AND');
+assert.equal(new OrBit([a, b]).probability(), 0.75,
+  'probability of independent OR');
 assert.equal(new AndBit([a, new OrBit([a, b])]).probability(), 0.5,
   'probability of dependent expressions');
 
