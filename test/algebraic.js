@@ -343,6 +343,14 @@ assert.equal(new AndBit([a, b]).probability(), 0.25,
   'probability of independent AND');
 assert.equal(new OrBit([a, b]).probability(), 0.75,
   'probability of independent OR');
+assert.equal(new XorBit([a, b]).probability(), 0.5,
+  'probability of independent XOR');
+assert.equal(new XorBit([a, zero]).probability(), 0.5,
+  'probability of XOR with constant');
+assert.equal(new XorBit([one, a]).probability(), 0.5,
+  'probability of XOR with constant');
+assert.equal(new XorBit([a, new AndBit([a, b])]).probability(), 0.25,
+  'probability of XOR with constant');
 assert.equal(new AndBit([a, new OrBit([a, b])]).probability(), 0.5,
   'probability of dependent expressions');
 
