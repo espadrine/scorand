@@ -1,6 +1,7 @@
 import {strict as assert} from 'assert';
 import {ConstantBit, VarBit, NotBit, XorBit, AndBit, OrBit,
-        Buffer, UInt, UIntWithOverflow, UInt8, UInt16}
+        Buffer, UInt, UIntWithOverflow,
+        UInt8, UInt16, UInt32, UInt64, UInt128, UInt256}
 from '../algebraic.js';
 
 // ConstantBit
@@ -254,6 +255,13 @@ assert.equal(new UIntWithOverflow(3, 2).set(5).toString(), '[0, 1]',
   'UINTWITHOVERFLOW set to a number too large');
 assert.equal(UInt8.from([a]).toString(), '[0, 0, 0, 0, 0, 0, 0, a]',
   'UINTWITHOVERFLOW from');
+
+assert(UInt8.variable().bitAt(0) instanceof VarBit, 'UInt8 variable');
+assert(UInt16.variable().bitAt(0) instanceof VarBit, 'UInt16 variable');
+assert(UInt32.variable().bitAt(0) instanceof VarBit, 'UInt32 variable');
+assert(UInt64.variable().bitAt(0) instanceof VarBit, 'UInt64 variable');
+assert(UInt128.variable().bitAt(0) instanceof VarBit, 'UInt128 variable');
+assert(UInt256.variable().bitAt(0) instanceof VarBit, 'UInt256 variable');
 
 assert.equal(new UInt8(12).plus(i0).reduce().toString(),
   '[1, 0, 1, 1, 1, 0, 1, 0]',

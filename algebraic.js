@@ -195,6 +195,9 @@ export class UIntWithOverflow extends UInt {
     r.bits = bits;
     return r;
   }
+  static ofSize(size) {
+    return UIntWithOverflow.from(UInt.ofSize(size).bits);
+  }
 
   set(int) {
     return super.set(int).truncateMostSignificant();
@@ -250,6 +253,7 @@ export class UInt8 extends UIntWithOverflow {
     r.truncateMostSignificant();
     return r;
   }
+  static variable() { return UInt8.from(UInt.ofSize(8).bits); }
 }
 
 // Word.
@@ -261,6 +265,7 @@ export class UInt16 extends UIntWithOverflow {
     r.truncateMostSignificant();
     return r;
   }
+  static variable() { return UInt16.from(UInt.ofSize(16).bits); }
 }
 
 // Doubleword.
@@ -272,6 +277,7 @@ export class UInt32 extends UIntWithOverflow {
     r.truncateMostSignificant();
     return r;
   }
+  static variable() { return UInt32.from(UInt.ofSize(32).bits); }
 }
 
 // Quadword.
@@ -283,6 +289,7 @@ export class UInt64 extends UIntWithOverflow {
     r.truncateMostSignificant();
     return r;
   }
+  static variable() { return UInt64.from(UInt.ofSize(64).bits); }
 }
 
 // Sometimes available through compilers.
@@ -294,6 +301,7 @@ export class UInt128 extends UIntWithOverflow {
     r.truncateMostSignificant();
     return r;
   }
+  static variable() { return UInt128.from(UInt.ofSize(128).bits); }
 }
 
 // There are no 256-bit CPUs yet,
@@ -306,6 +314,7 @@ export class UInt256 extends UIntWithOverflow {
     r.truncateMostSignificant();
     return r;
   }
+  static variable() { return UInt256.from(UInt.ofSize(256).bits); }
 }
 
 // Booleans.
