@@ -96,12 +96,11 @@ export class UInt extends Buffer {
 
   // UInt with bit variables of a size in bits.
   static ofSize(size) {
-    const int = new UInt(0);
-    int.bits = new Array(size);
+    const bits = new Array(size);
     for (let i = 0; i < size; i++) {
-      int.bits[i] = new VarBit();
+      bits[i] = new VarBit();
     }
-    return int;
+    return UInt.from(bits);
   }
 
   // Change the bits of the UInt to lay out another integer.
