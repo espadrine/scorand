@@ -138,7 +138,9 @@ export class UInt extends Buffer {
       const intBit = int.bits[i].copy();
       if (intBit.type === ConstantBit && intBit.value === 0) { continue; }
       const partial = this.times2exp(int.bits.length - i - 1);
-      partial.bits = partial.bits.map(b => new AndBit([intBit, b.copy()]));
+      if (intBit.type !== ConstantBit || intBit.value !== 1) {
+        partial.bits = partial.bits.map(b => new AndBit([intBit, b.copy()]));
+      }
       acc = acc.plus(partial);
       // Tiny break in our no-automatic-reduce rule, to limit slowdown.
       acc.reduce();
